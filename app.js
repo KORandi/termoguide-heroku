@@ -11,9 +11,9 @@ import passport from "passport";
 import { Strategy as LocalStrategy } from "passport-local";
 import { Strategy as JWTstrategy, ExtractJwt } from "passport-jwt";
 import { OAuth2Client } from "google-auth-library";
-import { authenticate } from "./utils";
-import { UserDAO } from "./dao/user.dao";
-import AppRouter from "./controller/app";
+import { authenticate } from "./src/utils";
+import { UserDAO } from "./src/dao/user.dao";
+import AppRouter from "./src/controller/app";
 
 require("dotenv").config();
 
@@ -156,7 +156,7 @@ const getRoutes = async (directoryPath) => {
 };
 
 (async () => {
-  const routes = await getRoutes(`${path.join(__dirname)}/controller/api`);
+  const routes = await getRoutes(`${path.join(__dirname)}/src/controller/api`);
   routes.forEach(async ([route, routeFilePromise]) => {
     const { default: routeObj } = await routeFilePromise;
     app.use(`/api/${route}`, routeObj);
@@ -165,7 +165,7 @@ const getRoutes = async (directoryPath) => {
 
 (async () => {
   const securedRoutes = await getRoutes(
-    `${path.join(__dirname)}/controller/api/_secured`
+    `${path.join(__dirname)}/src/controller/api/_secured`
   );
   securedRoutes.forEach(async ([route, routeFilePromise]) => {
     const { default: routeObj } = await routeFilePromise;
