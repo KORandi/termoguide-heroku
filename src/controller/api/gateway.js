@@ -14,6 +14,12 @@ router.post(
   }
 );
 
+router.post("/add", async (req, res) => {
+  res.json({
+    status: 200,
+  });
+});
+
 // list all users
 router.get(
   "/list",
