@@ -1,4 +1,9 @@
 import { Router } from "express";
+import {
+  validate,
+  validateGatewayMac,
+  validateGatewayPayload,
+} from "../../abl/gateway";
 import { GatewayDAO } from "../../dao/gateway.dao";
 import { authenticate, availableFor } from "../../utils";
 
@@ -15,8 +20,31 @@ router.post(
 );
 
 router.post("/add", async (req, res) => {
+  const { mac, payload } = req.body;
+
+  const errors = validate([
+    validateGatewayMac(mac),
+    validateGatewayPayload(payload),
+  ]);
+
+  if (errors.length) {
+    res.status(400);
+    res.json({
+      status: 400,
+      errors,
+      data: req.body,
+    });
+    return;
+  }
+
+  //@TODO Create service structure
+  //@TODO Create Temperature dao and Humidity dao
+  //@TODO Create or update gateway
+  //@TODO Parse gateway payload
+
   res.json({
     status: 200,
+    data: req.body,
   });
 });
 
