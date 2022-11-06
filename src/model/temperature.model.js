@@ -13,13 +13,8 @@ export const TemperatureSchema = new Schema({
     required: true,
   },
   gateway: {
-    type: {
-      _id: {
-        type: ObjectId,
-        ref: "gateway",
-      },
-      name: String,
-    },
+    type: ObjectId,
+    ref: "gateway",
     required: true,
   },
 });
