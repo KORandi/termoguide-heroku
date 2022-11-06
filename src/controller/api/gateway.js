@@ -39,7 +39,7 @@ router.post("/add", logRequest, async (req, res) => {
     return;
   }
 
-  addGatewayPayload(mac, payload);
+  await addGatewayPayload(mac, payload);
 
   res.json({
     status: 200,
