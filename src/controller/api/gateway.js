@@ -56,7 +56,7 @@ router.post(
   authenticate(),
   availableFor(["ADMIN"]),
   async (req, res) => {
-    res.json(await GatewayDAO.delete(req.params.id));
+    res.json(await GatewayDAO.delete(req.body.id));
   }
 );
 
