@@ -1,6 +1,5 @@
 import mongoose, { Schema } from "mongoose";
 import bcrypt from "bcrypt";
-import { GroupSchema } from "./group.model";
 
 const ObjectId = Schema.Types.ObjectId;
 

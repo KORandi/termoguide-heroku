@@ -5,6 +5,7 @@ import {
   validateGatewayPayload,
 } from "../../abl/gateway";
 import { GatewayDAO } from "../../dao/gateway.dao";
+import { addGatewayPayload } from "../../service/gateway.service";
 import { authenticate, availableFor } from "../../utils";
 
 const router = Router();
@@ -37,10 +38,7 @@ router.post("/add", async (req, res) => {
     return;
   }
 
-  //@TODO Create service structure
-  //@TODO Create Temperature dao and Humidity dao
-  //@TODO Create or update gateway
-  //@TODO Parse gateway payload
+  addGatewayPayload(mac, payload);
 
   res.json({
     status: 200,

@@ -29,8 +29,8 @@ export class GatewayDAO {
   /**
    * create user
    */
-  static async create(user) {
-    const result = await GatewayModel.create(user);
+  static async create(gateway) {
+    const result = await GatewayModel.create(gateway);
     return new this(result);
   }
 
@@ -41,6 +41,20 @@ export class GatewayDAO {
   static async findByID(id) {
     const gateway = await GatewayModel.findOne({
       _id: id,
+    });
+    if (!gateway) {
+      return null;
+    }
+    return new this(gateway);
+  }
+
+  /**
+   * @param {string} secret
+   * @returns {Promise<GatewayDAO | null>}
+   */
+  static async findBySecret(secret) {
+    const gateway = await GatewayModel.findOne({
+      secret,
     });
     if (!gateway) {
       return null;
