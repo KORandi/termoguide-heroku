@@ -1,6 +1,7 @@
 import { GatewayDAO } from "../dao/gateway.dao";
 import { HumidityDAO } from "../dao/humidity.dao";
 import { TemperatureDAO } from "../dao/temperature.dao";
+import { ObjectId } from "mongodb";
 
 /**
  *
@@ -16,16 +17,20 @@ export async function addGatewayPayload(mac, payload) {
       secret: mac,
     });
   }
-  payload.forEach(async ({ timestamp, temperature, humidity }) => {
-    await HumidityDAO.create({
-      timestamp: new Date(timestamp),
-      gateway: gateway.id,
-      humidity,
-    });
-    await TemperatureDAO.create({
-      timestamp: new Date(timestamp),
-      gateway: gateway.id,
-      temperature,
-    });
-  });
+  await Promise.all(
+    payload.map(async ({ timestamp, temperature, humidity }) => [
+      await HumidityDAO.create({
+        timestamp: new Date(timestamp),
+        //@ts-ignore
+        gateway: ObjectId(gateway.id),
+        value: humidity,
+      }),
+      await TemperatureDAO.create({
+        timestamp: new Date(timestamp),
+        //@ts-ignore
+        gateway: ObjectId(gateway.id),
+        value: temperature,
+      }),
+    ])
+  );
 }

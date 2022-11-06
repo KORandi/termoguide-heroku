@@ -5,6 +5,7 @@ import {
   validateGatewayPayload,
 } from "../../abl/gateway";
 import { GatewayDAO } from "../../dao/gateway.dao";
+import { logRequest } from "../../middlewares/logRequest";
 import { addGatewayPayload } from "../../service/gateway.service";
 import { authenticate, availableFor } from "../../utils";
 
@@ -20,7 +21,7 @@ router.post(
   }
 );
 
-router.post("/add", async (req, res) => {
+router.post("/add", logRequest, async (req, res) => {
   const { mac, payload } = req.body;
 
   const errors = validate([
