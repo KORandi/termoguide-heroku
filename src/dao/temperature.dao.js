@@ -14,7 +14,7 @@ export class TemperatureDAO {
   constructor({ id, _id = "", value, gateway }) {
     this.id = id || _id || "";
     this.value = value || "";
-    this.gatewway = gateway || "";
+    this.gateway = gateway || "";
   }
 
   /**
@@ -32,8 +32,8 @@ export class TemperatureDAO {
   /**
    * list all groups
    */
-  static async list() {
-    const array = await GroupModel.find();
+  static async list(gatewayId) {
+    const array = await TemperatureModel.find({ gateway: gatewayId });
     if (!array) {
       return null;
     }

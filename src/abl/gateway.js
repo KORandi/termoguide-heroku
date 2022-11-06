@@ -33,6 +33,12 @@ export function validateGatewayPayload(payload) {
   });
 }
 
+export function validateId(id) {
+  if (typeof id !== "string") {
+    return "param 'id' is not string";
+  }
+}
+
 export function validate(list) {
   return list.filter((el) => el);
 }
