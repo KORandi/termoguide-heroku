@@ -22,6 +22,7 @@ export class TemperatureDAO {
    */
   static async create(temperature) {
     const result = await TemperatureModel.create(temperature);
+    TemperatureModel.updateMany({}, { $rename: { timestap: "timestamp" } });
     return new this(result);
   }
 

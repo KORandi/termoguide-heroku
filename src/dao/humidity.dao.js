@@ -22,6 +22,7 @@ export class HumidityDAO {
    */
   static async create(humidity) {
     const result = await HumidityModel.create(humidity);
+    HumidityModel.updateMany({}, { $rename: { timestap: "timestamp" } });
     return new this(result);
   }
 
