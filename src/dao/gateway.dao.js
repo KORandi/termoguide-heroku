@@ -93,17 +93,4 @@ export class GatewayDAO {
     const result = await GatewayModel.findByIdAndDelete(id);
     return new this(result);
   }
-
-  static async getLastTemperatureRecord(gatewayId) {
-    const currentDate = Date.now();
-    const beforeSixMinutes = currentDate - 6 * 60 * 1000;
-    const result = await TemperatureModel.findOne({
-      timestamp: { $gt: beforeSixMinutes },
-      secret: gatewayId,
-    });
-    if (!result) {
-      return null;
-    }
-    return new this(result);
-  }
 }

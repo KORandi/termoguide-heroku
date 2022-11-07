@@ -25,6 +25,14 @@ router.post(
   }
 );
 
+router.get("/test", async (req, res) => {
+  res.json(
+    await TemperatureDAO.getLastRecordGreaterThanSixMinutes(
+      "6367a8a99c3ebd0d258eaea4"
+    )
+  );
+});
+
 router.post("/add", logRequest, async (req, res) => {
   const { mac, payload } = req.body;
 
@@ -116,7 +124,8 @@ router.get("/status/:id", async function (req, res) {
     return;
   }
 
-  const temperature = await GatewayDAO.getLastTemperatureRecord(id);
+  const temperature =
+    await await TemperatureDAO.getLastRecordGreaterThanSixMinutes(id);
 
   res.json({
     status: 200,

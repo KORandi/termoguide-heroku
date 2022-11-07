@@ -80,4 +80,19 @@ export class TemperatureDAO {
   /**
    * delete study programme
    */
+
+  static async getLastRecordGreaterThanSixMinutes(gatewayId) {
+    const currentDate = Date.now();
+    const beforeSixMinutes = currentDate - 6 * 60 * 1000;
+    const result = await TemperatureModel.find({
+      timestamp: { $gt: beforeSixMinutes },
+      gateway: gatewayId,
+    })
+      .sort({ timestamp: -1 })
+      .limit(1);
+    if (!result) {
+      return null;
+    }
+    return result;
+  }
 }
