@@ -9,6 +9,7 @@ import { GatewayDAO } from "../../dao/gateway.dao";
 import { HumidityDAO } from "../../dao/humidity.dao";
 import { TemperatureDAO } from "../../dao/temperature.dao";
 import { logRequest } from "../../middlewares/logRequest";
+import { HumidityModel } from "../../model/humidity.model";
 import { addGatewayPayload } from "../../service/gateway.service";
 import { authenticate, availableFor } from "../../utils";
 

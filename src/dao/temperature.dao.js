@@ -22,8 +22,39 @@ export class TemperatureDAO {
    */
   static async create(temperature) {
     const result = await TemperatureModel.create(temperature);
-    TemperatureModel.updateMany({}, { $rename: { timestap: "timestamp" } });
     return new this(result);
+  }
+
+  static async getGroupedTempratureByTime() {
+    const result = TemperatureModel.aggregate([
+      {
+        $group: {
+          _id: {
+            $toDate: {
+              $subtract: [
+                {
+                  $toLong: "$timestap",
+                },
+                {
+                  $mod: [
+                    {
+                      $toLong: "$timestap",
+                    },
+                    15 * 60 * 1000,
+                  ],
+                },
+              ],
+            },
+          },
+          temperatures: {
+            $push: "$$ROOT",
+          },
+          count: {
+            $sum: 1,
+          },
+        },
+      },
+    ]);
   }
 
   /**
