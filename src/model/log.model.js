@@ -4,7 +4,7 @@ export const LogSchema = new Schema({
   body: {
     type: Object,
   },
-  timestap: {
+  timestamp: {
     type: Date,
     default: Date.now,
   },

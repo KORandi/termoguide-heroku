@@ -3,7 +3,7 @@ import mongoose, { Schema } from "mongoose";
 const ObjectId = Schema.Types.ObjectId;
 
 export const TemperatureSchema = new Schema({
-  timestap: {
+  timestamp: {
     type: Date,
     default: Date.now,
     required: true,
