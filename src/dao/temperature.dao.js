@@ -1,5 +1,4 @@
-import mongoose from "mongoose";
-import { GroupModel } from "../model/group.model.js";
+import { AvgTimeRecordDto } from "../dto/avg-time-record.dto.js";
 import { TemperatureModel } from "../model/temperature.model.js";
 
 function parseToPlainObject(obj) {
@@ -25,36 +24,57 @@ export class TemperatureDAO {
     return new this(result);
   }
 
-  static async getGroupedTempratureByTime() {
-    const result = TemperatureModel.aggregate([
+  static async getGroupedTempratureByTime(timestamp, interval, limit) {
+    const result = await TemperatureModel.aggregate([
+      {
+        $match: {
+          timestamp: { $gte: new Date(Number(timestamp)) },
+        },
+      },
       {
         $group: {
           _id: {
             $toDate: {
               $subtract: [
                 {
-                  $toLong: "$timestap",
+                  $toLong: "$timestamp",
                 },
                 {
                   $mod: [
                     {
-                      $toLong: "$timestap",
+                      $toLong: "$timestamp",
                     },
-                    15 * 60 * 1000,
+                    Number(interval),
                   ],
                 },
               ],
             },
           },
-          temperatures: {
-            $push: "$$ROOT",
+          average: {
+            $avg: {
+              $toDecimal: "$value",
+            },
           },
-          count: {
-            $sum: 1,
+        },
+      },
+      {
+        $sort: {
+          _id: 1,
+        },
+      },
+      {
+        $limit: Number(limit),
+      },
+      {
+        $project: {
+          date: "$_id",
+          temperatureAvg: {
+            $round: ["$average", 1],
           },
         },
       },
     ]);
+    return result.map((record) => new AvgTimeRecordDto(record));
   }
 
   /**

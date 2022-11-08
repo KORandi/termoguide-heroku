@@ -1,9 +1,12 @@
 import { Router } from "express";
 import {
   validate,
+  validateDate,
   validateGatewayMac,
   validateGatewayPayload,
   validateId,
+  validateInterval,
+  validateLimit,
 } from "../../abl/gateway";
 import { GatewayDAO } from "../../dao/gateway.dao";
 import { HumidityDAO } from "../../dao/humidity.dao";
@@ -24,14 +27,6 @@ router.post(
     res.json(await GatewayDAO.create(req.body));
   }
 );
-
-router.get("/test", async (req, res) => {
-  res.json(
-    await TemperatureDAO.getLastRecordGreaterThanSixMinutes(
-      "6367a8a99c3ebd0d258eaea4"
-    )
-  );
-});
 
 router.post("/add", logRequest, async (req, res) => {
   const { mac, payload } = req.body;
@@ -135,6 +130,37 @@ router.get("/status/:id", async function (req, res) {
   });
 });
 
+router.get("/temperature/:date/:interval/:limit?", async function (req, res) {
+  const { date, interval, limit = 10 } = req.params;
+
+  const errors = validate([
+    validateDate(date),
+    validateInterval(interval),
+    validateLimit(limit),
+  ]);
+
+  if (errors.length) {
+    res.status(400);
+    res.json({
+      status: 400,
+      errors,
+      data: req.params,
+    });
+    return;
+  }
+
+  const data = await TemperatureDAO.getGroupedTempratureByTime(
+    date,
+    interval,
+    limit
+  );
+
+  res.json({
+    status: 200,
+    data,
+  });
+});
+
 // list all gateways
 router.get(
   "/list",
@@ -142,16 +168,6 @@ router.get(
   availableFor(["ADMIN", "STUDENT", "TEACHER"]),
   async (req, res) => {
     res.json(await GatewayDAO.list());
-  }
-);
-
-// get gateway by id
-router.get(
-  "/:id",
-  authenticate(),
-  availableFor(["ADMIN"]),
-  async (req, res) => {
-    res.json(await GatewayDAO.findByID(req.params.id));
   }
 );
 
@@ -172,6 +188,16 @@ router.post(
   availableFor(["ADMIN"]),
   async (req, res) => {
     res.json(await GatewayDAO.delete(req.body.id));
+  }
+);
+
+// get gateway by id
+router.get(
+  "/:id",
+  authenticate(),
+  availableFor(["ADMIN"]),
+  async (req, res) => {
+    res.json(await GatewayDAO.findByID(req.params.id));
   }
 );
 

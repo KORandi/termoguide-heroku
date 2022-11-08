@@ -39,6 +39,27 @@ export function validateId(id) {
   }
 }
 
+export function validateDate(date) {
+  if (typeof date !== "string") {
+    return "param 'date' is not set";
+  }
+  if (!Number.isInteger(Number(date))) {
+    return "param 'date' is not timestamp";
+  }
+}
+
+export function validateInterval(interval) {
+  if (!Number.isInteger(Number(interval))) {
+    return "param 'interval' is not number";
+  }
+}
+
+export function validateLimit(limit) {
+  if (!Number.isInteger(Number(limit))) {
+    return "param 'limit' is not number";
+  }
+}
+
 export function validate(list) {
   return list.filter((el) => el);
 }
