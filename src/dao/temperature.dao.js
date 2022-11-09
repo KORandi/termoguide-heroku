@@ -1,4 +1,5 @@
-import { AvgTimeRecordDto } from "../dto/avg-time-record.dto.js";
+import { AvgTemperatureListDto } from "../dto/avg-temperature-list.dto.js";
+import { AvgTemperatureRecordDto } from "../dto/avg-temperature-record.dto.js";
 import { TemperatureModel } from "../model/temperature.model.js";
 
 function parseToPlainObject(obj) {
@@ -73,8 +74,36 @@ export class TemperatureDAO {
           },
         },
       },
+      {
+        $group: {
+          _id: 1,
+          data: {
+            $push: "$$ROOT",
+          },
+          min: {
+            $min: "$temperatureAvg",
+          },
+          average: {
+            $avg: "$temperatureAvg",
+          },
+          max: {
+            $max: "$temperatureAvg",
+          },
+        },
+      },
+      {
+        $project: {
+          data: 1,
+          min: 1,
+          max: 1,
+          average: { $round: ["$average", 1] },
+        },
+      },
     ]);
-    return result.map((record) => new AvgTimeRecordDto(record));
+    if (result.length === 0) {
+      return null;
+    }
+    return new AvgTemperatureListDto(result[0]);
   }
 
   /**

@@ -161,6 +161,37 @@ router.get("/temperature/:date/:interval/:limit?", async function (req, res) {
   });
 });
 
+router.get("/humidity/:date/:interval/:limit?", async function (req, res) {
+  const { date, interval, limit = 10 } = req.params;
+
+  const errors = validate([
+    validateDate(date),
+    validateInterval(interval),
+    validateLimit(limit),
+  ]);
+
+  if (errors.length) {
+    res.status(400);
+    res.json({
+      status: 400,
+      errors,
+      data: req.params,
+    });
+    return;
+  }
+
+  const data = await HumidityDAO.getGroupedTempratureByTime(
+    date,
+    interval,
+    limit
+  );
+
+  res.json({
+    status: 200,
+    data,
+  });
+});
+
 // list all gateways
 router.get(
   "/list",
