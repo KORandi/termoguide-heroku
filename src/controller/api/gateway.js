@@ -150,11 +150,7 @@ router.get("/temperature/:date/:interval/:limit?", async function (req, res) {
     return;
   }
 
-  const data = await TemperatureDAO.getGroupedTempratureByTime(
-    date,
-    interval,
-    limit
-  );
+  const data = await TemperatureDAO.getGroupedByTime(date, interval, limit);
 
   res.json({
     status: 200,
@@ -181,11 +177,7 @@ router.get("/humidity/:date/:interval/:limit?", async function (req, res) {
     return;
   }
 
-  const data = await HumidityDAO.getGroupedTempratureByTime(
-    date,
-    interval,
-    limit
-  );
+  const data = await HumidityDAO.getGroupedByTime(date, interval, limit);
 
   res.json({
     status: 200,

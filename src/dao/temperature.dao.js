@@ -1,6 +1,7 @@
 import { AvgTemperatureListDto } from "../dto/avg-temperature-list.dto.js";
 import { AvgTemperatureRecordDto } from "../dto/avg-temperature-record.dto.js";
 import { TemperatureModel } from "../model/temperature.model.js";
+import { getGroupedByTimeQuery } from "../query/getway.js";
 
 function parseToPlainObject(obj) {
   return {
@@ -25,133 +26,10 @@ export class TemperatureDAO {
     return new this(result);
   }
 
-  static async getGroupedTempratureByTime(timestamp, interval, limit) {
-    const result = await TemperatureModel.aggregate([
-      {
-        $match: {
-          timestamp: { $gte: new Date(Number(timestamp)) },
-        },
-      },
-      {
-        $group: {
-          _id: {
-            $toDate: {
-              $subtract: [
-                {
-                  $toLong: "$timestamp",
-                },
-                {
-                  $mod: [
-                    {
-                      $toLong: "$timestamp",
-                    },
-                    Number(interval),
-                  ],
-                },
-              ],
-            },
-          },
-          average: {
-            $avg: {
-              $toDecimal: "$value",
-            },
-          },
-        },
-      },
-      {
-        $sort: {
-          _id: 1,
-        },
-      },
-      {
-        $limit: Number(limit),
-      },
-      {
-        $project: {
-          date: "$_id",
-          temperatureAvg: {
-            $round: ["$average", 1],
-          },
-        },
-      },
-      {
-        $group: {
-          _id: 1,
-          data: {
-            $push: "$$ROOT",
-          },
-          average: {
-            $avg: "$temperatureAvg",
-          },
-          min: {
-            $min: "$temperatureAvg",
-          },
-          max: {
-            $max: "$temperatureAvg",
-          },
-          length: {
-            $count: {},
-          },
-        },
-      },
-      {
-        $set: {
-          variance: {
-            $divide: [
-              {
-                $reduce: {
-                  input: "$data",
-                  initialValue: 0,
-                  in: {
-                    $add: [
-                      "$$value",
-                      {
-                        $pow: [
-                          {
-                            $subtract: ["$$this.temperatureAvg", "$average"],
-                          },
-                          2,
-                        ],
-                      },
-                    ],
-                  },
-                },
-              },
-              "$length",
-            ],
-          },
-        },
-      },
-      {
-        $set: {
-          coefficientOfVariation: {
-            $divide: [
-              {
-                $pow: ["$variance", 0.5],
-              },
-              "$average",
-            ],
-          },
-        },
-      },
-      {
-        $project: {
-          data: 1,
-          min: 1,
-          max: 1,
-          average: { $round: ["$average", 2] },
-          variance: { $round: ["$variance", 2] },
-          coefficientOfVariation: {
-            $round: [
-              {
-                $multiply: ["$coefficientOfVariation", 100],
-              },
-              2,
-            ],
-          },
-        },
-      },
-    ]);
+  static async getGroupedByTime(timestamp, interval, limit) {
+    const result = await TemperatureModel.aggregate(
+      getGroupedByTimeQuery(timestamp, interval, limit)
+    );
     if (result.length === 0) {
       return null;
     }

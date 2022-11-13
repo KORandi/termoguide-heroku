@@ -4,6 +4,7 @@ import { AvgHumidityRecordDto } from "../dto/avg-humidity-record.dto.js";
 import { AvgTemperatureRecordDto } from "../dto/avg-temperature-record.dto.js";
 import { GroupModel } from "../model/group.model.js";
 import { HumidityModel } from "../model/humidity.model.js";
+import { getGroupedByTimeQuery } from "../query/getway.js";
 
 function parseToPlainObject(obj) {
   return {
@@ -52,133 +53,10 @@ export class HumidityDAO {
    * delete study programme
    */
 
-  static async getGroupedTempratureByTime(timestamp, interval, limit) {
-    const result = await HumidityModel.aggregate([
-      {
-        $match: {
-          timestamp: { $gte: new Date(Number(timestamp)) },
-        },
-      },
-      {
-        $group: {
-          _id: {
-            $toDate: {
-              $subtract: [
-                {
-                  $toLong: "$timestamp",
-                },
-                {
-                  $mod: [
-                    {
-                      $toLong: "$timestamp",
-                    },
-                    Number(interval),
-                  ],
-                },
-              ],
-            },
-          },
-          average: {
-            $avg: {
-              $toDecimal: "$value",
-            },
-          },
-        },
-      },
-      {
-        $sort: {
-          _id: 1,
-        },
-      },
-      {
-        $limit: Number(limit),
-      },
-      {
-        $project: {
-          date: "$_id",
-          humidityAvg: {
-            $round: ["$average", 1],
-          },
-        },
-      },
-      {
-        $group: {
-          _id: 1,
-          data: {
-            $push: "$$ROOT",
-          },
-          min: {
-            $min: "$humidityAvg",
-          },
-          max: {
-            $max: "$humidityAvg",
-          },
-          average: {
-            $avg: "$humidityAvg",
-          },
-          length: {
-            $count: {},
-          },
-        },
-      },
-      {
-        $set: {
-          variance: {
-            $divide: [
-              {
-                $reduce: {
-                  input: "$data",
-                  initialValue: 0,
-                  in: {
-                    $add: [
-                      "$$value",
-                      {
-                        $pow: [
-                          {
-                            $subtract: ["$$this.humidityAvg", "$average"],
-                          },
-                          2,
-                        ],
-                      },
-                    ],
-                  },
-                },
-              },
-              "$length",
-            ],
-          },
-        },
-      },
-      {
-        $set: {
-          coefficientOfVariation: {
-            $divide: [
-              {
-                $pow: ["$variance", 0.5],
-              },
-              "$average",
-            ],
-          },
-        },
-      },
-      {
-        $project: {
-          data: 1,
-          min: 1,
-          max: 1,
-          average: { $round: ["$average", 2] },
-          variance: { $round: ["$variance", 2] },
-          coefficientOfVariation: {
-            $round: [
-              {
-                $multiply: ["$coefficientOfVariation", 100],
-              },
-              2,
-            ],
-          },
-        },
-      },
-    ]);
+  static async getGroupedByTime(timestamp, interval, limit) {
+    const result = await HumidityModel.aggregate(
+      getGroupedByTimeQuery(timestamp, interval, limit)
+    );
     if (result.length === 0) {
       return null;
     }
