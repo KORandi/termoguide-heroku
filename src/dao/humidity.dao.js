@@ -110,11 +110,54 @@ export class HumidityDAO {
           min: {
             $min: "$humidityAvg",
           },
+          max: {
+            $max: "$humidityAvg",
+          },
           average: {
             $avg: "$humidityAvg",
           },
-          max: {
-            $max: "$humidityAvg",
+          length: {
+            $count: {},
+          },
+        },
+      },
+      {
+        $set: {
+          variance: {
+            $divide: [
+              {
+                $reduce: {
+                  input: "$data",
+                  initialValue: 0,
+                  in: {
+                    $add: [
+                      "$$value",
+                      {
+                        $pow: [
+                          {
+                            $subtract: ["$$this.humidityAvg", "$average"],
+                          },
+                          2,
+                        ],
+                      },
+                    ],
+                  },
+                },
+              },
+              "$length",
+            ],
+          },
+        },
+      },
+      {
+        $set: {
+          coefficientOfVariation: {
+            $divide: [
+              {
+                $pow: ["$variance", 0.5],
+              },
+              "$average",
+            ],
           },
         },
       },
@@ -123,7 +166,16 @@ export class HumidityDAO {
           data: 1,
           min: 1,
           max: 1,
-          average: { $round: ["$average", 1] },
+          average: { $round: ["$average", 2] },
+          variance: { $round: ["$variance", 2] },
+          coefficientOfVariation: {
+            $round: [
+              {
+                $multiply: ["$coefficientOfVariation", 100],
+              },
+              2,
+            ],
+          },
         },
       },
     ]);

@@ -7,6 +7,7 @@ import {
   validateId,
   validateInterval,
   validateLimit,
+  validateName,
 } from "../../abl/gateway";
 import { GatewayDAO } from "../../dao/gateway.dao";
 import { HumidityDAO } from "../../dao/humidity.dao";
@@ -208,7 +209,35 @@ router.post(
   authenticate(),
   availableFor(["ADMIN"]),
   async (req, res) => {
-    res.json(await GatewayDAO.update(req.body));
+    const { name, id } = req.body;
+    const errors = validate([validateName(name), validateId(id)]);
+
+    if (errors.length) {
+      res.status(400);
+      res.json({
+        status: 400,
+        errors,
+        data: req.body,
+      });
+      return;
+    }
+
+    try {
+      await GatewayDAO.update(id, { name });
+    } catch (error) {
+      res.status(400);
+      res.json({
+        status: 400,
+        errors: [error.message],
+        data: req.body,
+      });
+      return;
+    }
+
+    res.json({
+      status: 200,
+      data: req.body,
+    });
   }
 );
 
@@ -228,7 +257,11 @@ router.get(
   authenticate(),
   availableFor(["ADMIN"]),
   async (req, res) => {
-    res.json(await GatewayDAO.findByID(req.params.id));
+    const data = await GatewayDAO.findByID(req.params.id);
+    res.json({
+      status: 200,
+      data,
+    });
   }
 );
 

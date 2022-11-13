@@ -4,6 +4,7 @@ export const GatewaySchema = new Schema({
   name: {
     type: String,
     required: true,
+    unique: true,
   },
   secret: {
     type: String,

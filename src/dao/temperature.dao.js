@@ -80,14 +80,57 @@ export class TemperatureDAO {
           data: {
             $push: "$$ROOT",
           },
-          min: {
-            $min: "$temperatureAvg",
-          },
           average: {
             $avg: "$temperatureAvg",
           },
+          min: {
+            $min: "$temperatureAvg",
+          },
           max: {
             $max: "$temperatureAvg",
+          },
+          length: {
+            $count: {},
+          },
+        },
+      },
+      {
+        $set: {
+          variance: {
+            $divide: [
+              {
+                $reduce: {
+                  input: "$data",
+                  initialValue: 0,
+                  in: {
+                    $add: [
+                      "$$value",
+                      {
+                        $pow: [
+                          {
+                            $subtract: ["$$this.temperatureAvg", "$average"],
+                          },
+                          2,
+                        ],
+                      },
+                    ],
+                  },
+                },
+              },
+              "$length",
+            ],
+          },
+        },
+      },
+      {
+        $set: {
+          coefficientOfVariation: {
+            $divide: [
+              {
+                $pow: ["$variance", 0.5],
+              },
+              "$average",
+            ],
           },
         },
       },
@@ -96,7 +139,16 @@ export class TemperatureDAO {
           data: 1,
           min: 1,
           max: 1,
-          average: { $round: ["$average", 1] },
+          average: { $round: ["$average", 2] },
+          variance: { $round: ["$variance", 2] },
+          coefficientOfVariation: {
+            $round: [
+              {
+                $multiply: ["$coefficientOfVariation", 100],
+              },
+              2,
+            ],
+          },
         },
       },
     ]);

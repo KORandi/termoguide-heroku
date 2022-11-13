@@ -39,6 +39,12 @@ export function validateId(id) {
   }
 }
 
+export function validateName(name) {
+  if (typeof name !== "string") {
+    return "param 'id' is not string";
+  }
+}
+
 export function validateDate(date) {
   if (typeof date !== "string") {
     return "param 'date' is not set";
