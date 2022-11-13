@@ -1,6 +1,6 @@
 export class AvgTemperatureRecordDto {
-  constructor({ date, temperatureAvg }) {
+  constructor({ date, val }) {
     this.date = date;
-    this.temperatureAvg = Number(temperatureAvg);
+    this.value = Number(val);
   }
 }

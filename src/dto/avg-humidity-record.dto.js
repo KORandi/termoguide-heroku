@@ -1,6 +1,6 @@
 export class AvgHumidityRecordDto {
-  constructor({ date, humidityAvg }) {
+  constructor({ date, val }) {
     this.date = date;
-    this.humidityAvg = Number(humidityAvg);
+    this.value = Number(val);
   }
 }

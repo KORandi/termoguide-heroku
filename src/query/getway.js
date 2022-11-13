@@ -29,7 +29,7 @@ export const getGroupedByTimeQuery = (timestamp, interval, limit) => [
           ],
         },
       },
-      average: {
+      val: {
         $avg: {
           $toDecimal: "$value",
         },
@@ -47,7 +47,7 @@ export const getGroupedByTimeQuery = (timestamp, interval, limit) => [
   {
     $project: {
       date: "$_id",
-      average: 1,
+      val: 1,
     },
   },
   {
@@ -57,13 +57,13 @@ export const getGroupedByTimeQuery = (timestamp, interval, limit) => [
         $push: "$$ROOT",
       },
       average: {
-        $avg: "$average",
+        $avg: "$val",
       },
       min: {
-        $min: "$average",
+        $min: "$val",
       },
       max: {
-        $max: "$average",
+        $max: "$val",
       },
       length: {
         $count: {},
@@ -84,7 +84,7 @@ export const getGroupedByTimeQuery = (timestamp, interval, limit) => [
                   {
                     $pow: [
                       {
-                        $subtract: ["$$this.average", "$average"],
+                        $subtract: ["$$this.val", "$average"],
                       },
                       2,
                     ],
