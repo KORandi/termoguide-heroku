@@ -7,7 +7,6 @@ export class AvgTemperatureListDto {
     this.average = Number(average);
     this.variance = Number(variance);
     this.coefficientOfVariation = Number(coefficientOfVariation);
-    console.log(data);
     this.data = data.map((record) => new AvgTemperatureRecordDto(record));
   }
 }
