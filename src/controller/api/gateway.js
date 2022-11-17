@@ -55,6 +55,60 @@ router.post("/add", logRequest, async (req, res) => {
   });
 });
 
+router.get("/temperature/search", async function (req, res) {
+  const { interval, date = 0, limit = 10 } = req.query;
+
+  const errors = validate([
+    validateDate(date),
+    validateInterval(interval),
+    validateLimit(limit),
+  ]);
+
+  if (errors.length) {
+    res.status(400);
+    res.json({
+      status: 400,
+      errors,
+      data: req.params,
+    });
+    return;
+  }
+
+  const data = await TemperatureDAO.getGroupedByTime(date, interval, limit);
+
+  res.json({
+    status: 200,
+    data,
+  });
+});
+
+router.get("/humidity/search", async function (req, res) {
+  const { interval, date = 0, limit = 10 } = req.query;
+
+  const errors = validate([
+    validateDate(date),
+    validateInterval(interval),
+    validateLimit(limit),
+  ]);
+
+  if (errors.length) {
+    res.status(400);
+    res.json({
+      status: 400,
+      errors,
+      data: req.params,
+    });
+    return;
+  }
+
+  const data = await HumidityDAO.getGroupedByTime(date, interval, limit);
+
+  res.json({
+    status: 200,
+    data,
+  });
+});
+
 router.get("/temperature/:id", async function (req, res) {
   const { id } = req.params;
 
@@ -128,60 +182,6 @@ router.get("/status/:id", async function (req, res) {
     data: {
       value: !!temperature,
     },
-  });
-});
-
-router.get("/temperature/:date/:interval/:limit?", async function (req, res) {
-  const { date, interval, limit = 10 } = req.params;
-
-  const errors = validate([
-    validateDate(date),
-    validateInterval(interval),
-    validateLimit(limit),
-  ]);
-
-  if (errors.length) {
-    res.status(400);
-    res.json({
-      status: 400,
-      errors,
-      data: req.params,
-    });
-    return;
-  }
-
-  const data = await TemperatureDAO.getGroupedByTime(date, interval, limit);
-
-  res.json({
-    status: 200,
-    data,
-  });
-});
-
-router.get("/humidity/:date/:interval/:limit?", async function (req, res) {
-  const { date, interval, limit = 10 } = req.params;
-
-  const errors = validate([
-    validateDate(date),
-    validateInterval(interval),
-    validateLimit(limit),
-  ]);
-
-  if (errors.length) {
-    res.status(400);
-    res.json({
-      status: 400,
-      errors,
-      data: req.params,
-    });
-    return;
-  }
-
-  const data = await HumidityDAO.getGroupedByTime(date, interval, limit);
-
-  res.json({
-    status: 200,
-    data,
   });
 });
 

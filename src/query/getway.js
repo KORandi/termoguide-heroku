@@ -1,5 +1,5 @@
 /**
- * @param {string} timestamp
+ * @param {string | 0} timestamp
  * @param {string} interval
  * @param {string} limit
  * @returns {object[]}
@@ -38,11 +38,16 @@ export const getGroupedByTimeQuery = (timestamp, interval, limit) => [
   },
   {
     $sort: {
-      _id: 1,
+      _id: timestamp === 0 ? -1 : 1,
     },
   },
   {
     $limit: Number(limit),
+  },
+  {
+    $sort: {
+      _id: 1,
+    },
   },
   {
     $project: {

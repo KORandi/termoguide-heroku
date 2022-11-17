@@ -46,8 +46,8 @@ export function validateName(name) {
 }
 
 export function validateDate(date) {
-  if (typeof date !== "string") {
-    return "param 'date' is not set";
+  if (typeof date === "undefined") {
+    return;
   }
   if (!Number.isInteger(Number(date))) {
     return "param 'date' is not timestamp";
