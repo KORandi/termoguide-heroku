@@ -9,7 +9,7 @@ export const HumiditySchema = new Schema({
     required: true,
   },
   value: {
-    type: String,
+    type: mongoose.Types.Decimal128,
     required: true,
   },
   gateway: {
