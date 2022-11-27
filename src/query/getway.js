@@ -4,7 +4,7 @@
  * @returns {object[]}
  */
 const UpSamplingSubquery = (limit, interval) => {
-  if (Number(interval) >= 300000) {
+  if (Number(interval) > 60000) {
     return [];
   }
   return [
@@ -39,62 +39,57 @@ const UpSamplingSubquery = (limit, interval) => {
     {
       $project: {
         data: {
-          $reduce: {
-            input: "$data",
-            initialValue: [],
-            in: {
-              $concatArrays: [
-                "$$value",
-                {
-                  $map: {
-                    input: {
-                      $range: [
-                        1,
-                        {
-                          $abs: {
-                            $dateDiff: {
-                              startDate: "$$this.next.date",
-                              endDate: "$$this.current.date",
-                              unit: "minute",
-                            },
-                          },
-                        },
-                      ],
-                    },
-                    as: "mapVal",
-                    in: {
-                      val: "$$this.current.val",
-                      date: {
-                        $toDate: {
-                          $add: [
+          $slice: [
+            {
+              $reduce: {
+                input: "$data",
+                initialValue: [],
+                in: {
+                  $concatArrays: [
+                    "$$value",
+                    {
+                      $map: {
+                        input: {
+                          $range: [
+                            1,
                             {
-                              $toLong: "$$this.current.date",
-                            },
-                            {
-                              $multiply: ["$$mapVal", 60000],
+                              $abs: {
+                                $dateDiff: {
+                                  startDate: "$$this.next.date",
+                                  endDate: "$$this.current.date",
+                                  unit: "minute",
+                                },
+                              },
                             },
                           ],
                         },
+                        as: "mapVal",
+                        in: {
+                          val: "$$this.current.val",
+                          date: {
+                            $toDate: {
+                              $add: [
+                                {
+                                  $toLong: "$$this.current.date",
+                                },
+                                {
+                                  $multiply: ["$$mapVal", Number(interval)],
+                                },
+                              ],
+                            },
+                          },
+                        },
                       },
                     },
-                  },
+                    ["$$this.next"],
+                  ],
                 },
-                ["$$this.next"],
-              ],
+              },
             },
-          },
+            -1 * Number(limit),
+          ],
         },
       },
-    },
-    {
-      $set: {
-        length: {
-          $size: "$data",
-        },
-      },
-    },
-    {
-      $limit: Number(limit),
     },
   ];
 };
