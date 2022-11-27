@@ -4,7 +4,7 @@ import { AvgHumidityRecordDto } from "../dto/avg-humidity-record.dto.js";
 import { AvgTemperatureRecordDto } from "../dto/avg-temperature-record.dto.js";
 import { GroupModel } from "../model/group.model.js";
 import { HumidityModel } from "../model/humidity.model.js";
-import { getGroupedByTimeQuery } from "../query/getway.js";
+import { getGroupedByTimeQuery } from "../query/getway.query.js";
 
 function parseToPlainObject(obj) {
   return {

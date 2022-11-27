@@ -1,6 +1,4 @@
 import { GatewayModel } from "../model";
-import { LogModel } from "../model/log.model";
-import { TemperatureModel } from "../model/temperature.model";
 
 export class GatewayDAO {
   /**

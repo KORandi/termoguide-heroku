@@ -1,4 +1,3 @@
-import mongoose from "mongoose";
 import { GroupModel } from "../model/group.model.js";
 
 function parseToPlainObject(obj) {
@@ -9,11 +8,7 @@ function parseToPlainObject(obj) {
 }
 
 export class GroupDAO {
-  constructor({
-    id,
-    _id = "",
-    name,
-  }) {
+  constructor({ id, _id = "", name }) {
     this.id = id || _id || "";
     this.name = name || "";
   }
@@ -25,7 +20,6 @@ export class GroupDAO {
   /**
    * get group
    */
-
 
   /**
    * list all groups
@@ -46,5 +40,4 @@ export class GroupDAO {
   /**
    * delete study programme
    */
-
 }

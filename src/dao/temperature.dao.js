@@ -1,7 +1,6 @@
 import { AvgTemperatureListDto } from "../dto/avg-temperature-list.dto.js";
-import { AvgTemperatureRecordDto } from "../dto/avg-temperature-record.dto.js";
 import { TemperatureModel } from "../model/temperature.model.js";
-import { getGroupedByTimeQuery } from "../query/getway.js";
+import { getGroupedByTimeQuery } from "../query/getway.query.js";
 
 function parseToPlainObject(obj) {
   return {
