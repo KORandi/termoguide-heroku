@@ -1,10 +1,10 @@
 /**
- * @param {string} limit
- * @param {string} interval
+ * @param {Number} limit
+ * @param {Number} interval
  * @returns {object[]}
  */
 const UpSamplingSubquery = (limit, interval) => {
-  if (Number(interval) > 60000) {
+  if (interval > 60000) {
     return [];
   }
   return [
@@ -65,7 +65,35 @@ const UpSamplingSubquery = (limit, interval) => {
                         },
                         as: "mapVal",
                         in: {
-                          val: "$$this.current.val",
+                          val: {
+                            $add: [
+                              "$$this.current.val",
+                              {
+                                $multiply: [
+                                  {
+                                    $divide: [
+                                      {
+                                        $subtract: [
+                                          "$$this.next.val",
+                                          "$$this.current.val",
+                                        ],
+                                      },
+                                      {
+                                        $abs: {
+                                          $dateDiff: {
+                                            startDate: "$$this.next.date",
+                                            endDate: "$$this.current.date",
+                                            unit: "minute",
+                                          },
+                                        },
+                                      },
+                                    ],
+                                  },
+                                  "$$mapVal",
+                                ],
+                              },
+                            ],
+                          },
                           date: {
                             $toDate: {
                               $add: [
@@ -73,7 +101,7 @@ const UpSamplingSubquery = (limit, interval) => {
                                   $toLong: "$$this.current.date",
                                 },
                                 {
-                                  $multiply: ["$$mapVal", Number(interval)],
+                                  $multiply: ["$$mapVal", interval],
                                 },
                               ],
                             },
@@ -86,7 +114,7 @@ const UpSamplingSubquery = (limit, interval) => {
                 },
               },
             },
-            -1 * Number(limit),
+            -1 * limit,
           ],
         },
       },
@@ -95,16 +123,16 @@ const UpSamplingSubquery = (limit, interval) => {
 };
 
 /**
- * @param {string | 0} timestamp
- * @param {string} interval
- * @param {string} limit
+ * @param {Number} timestamp
+ * @param {Number} interval
+ * @param {Number} limit
  * @returns {object[]}
  */
 export const getGroupedByTimeQuery = (timestamp, interval, limit) =>
   [
     {
       $match: {
-        timestamp: { $gte: new Date(Number(timestamp)) },
+        timestamp: { $gte: new Date(timestamp) },
       },
     },
     {
@@ -120,7 +148,7 @@ export const getGroupedByTimeQuery = (timestamp, interval, limit) =>
                   {
                     $toLong: "$timestamp",
                   },
-                  Number(interval),
+                  interval,
                 ],
               },
             ],
@@ -139,7 +167,7 @@ export const getGroupedByTimeQuery = (timestamp, interval, limit) =>
       },
     },
     {
-      $limit: Number(limit),
+      $limit: limit,
     },
     {
       $sort: {

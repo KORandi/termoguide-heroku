@@ -78,7 +78,11 @@ router.get("/temperature/search", async function (req, res) {
     return;
   }
 
-  const data = await temperatureGrouped(date, interval, limit);
+  const data = await temperatureGrouped(
+    Number(date),
+    Number(interval),
+    Number(limit)
+  );
 
   res.json({
     status: 200,

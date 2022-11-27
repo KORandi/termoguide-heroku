@@ -53,9 +53,16 @@ export class HumidityDAO {
    * delete study programme
    */
 
+  /**
+   *
+   * @param {Number} timestamp
+   * @param {Number} interval
+   * @param {Number} limit
+   * @returns {Promise<AvgHumidityListDto>}
+   */
   static async getGroupedByTime(timestamp, interval, limit) {
     const result = await HumidityModel.aggregate(
-      getGroupedByTimeQuery(timestamp, interval, limit)
+      getGroupedByTimeQuery(timestamp, interval, limit > 100 ? 100 : limit)
     );
     if (result.length === 0) {
       return null;
