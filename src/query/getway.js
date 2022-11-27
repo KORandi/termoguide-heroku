@@ -119,6 +119,13 @@ const UpSamplingSubquery = (limit, interval) => {
         },
       },
     },
+    {
+      $set: {
+        length: {
+          $size: "$data",
+        },
+      },
+    },
   ];
 };
 
