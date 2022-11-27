@@ -62,7 +62,21 @@ const UpSamplingSubquery = (limit, interval) => {
                       ],
                     },
                     as: "mapVal",
-                    in: "$$this.current",
+                    in: {
+                      val: "$$this.current.val",
+                      date: {
+                        $toDate: {
+                          $add: [
+                            {
+                              $toLong: "$$this.current.date",
+                            },
+                            {
+                              $multiply: ["$$mapVal", 60000],
+                            },
+                          ],
+                        },
+                      },
+                    },
                   },
                 },
                 ["$$this.next"],
