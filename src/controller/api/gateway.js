@@ -110,7 +110,11 @@ router.get("/humidity/search", async function (req, res) {
     return;
   }
 
-  const data = await humidityGrouped(date, interval, limit);
+  const data = await humidityGrouped(
+    Number(date),
+    Number(interval),
+    Number(limit)
+  );
 
   res.json({
     status: 200,
