@@ -16,6 +16,7 @@ import { logRequest } from "../../middlewares/logRequest";
 import { HumidityModel } from "../../model/humidity.model";
 import { addGatewayPayload } from "../../service/gateway.service";
 import { authenticate, availableFor } from "../../utils";
+import { getGroupedByTimeMemo } from "../../utils/memo";
 
 const router = Router();
 
@@ -55,6 +56,9 @@ router.post("/add", logRequest, async (req, res) => {
   });
 });
 
+const temperatureGrouped = getGroupedByTimeMemo(
+  TemperatureDAO.getGroupedByTime
+);
 router.get("/temperature/search", async function (req, res) {
   const { interval, date = 0, limit = 10 } = req.query;
 
@@ -74,7 +78,7 @@ router.get("/temperature/search", async function (req, res) {
     return;
   }
 
-  const data = await TemperatureDAO.getGroupedByTime(date, interval, limit);
+  const data = await temperatureGrouped(date, interval, limit);
 
   res.json({
     status: 200,
@@ -82,6 +86,7 @@ router.get("/temperature/search", async function (req, res) {
   });
 });
 
+const humidityGrouped = getGroupedByTimeMemo(HumidityDAO.getGroupedByTime);
 router.get("/humidity/search", async function (req, res) {
   const { interval, date = 0, limit = 10 } = req.query;
 
@@ -101,7 +106,7 @@ router.get("/humidity/search", async function (req, res) {
     return;
   }
 
-  const data = await HumidityDAO.getGroupedByTime(date, interval, limit);
+  const data = await humidityGrouped(date, interval, limit);
 
   res.json({
     status: 200,
