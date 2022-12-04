@@ -33,7 +33,7 @@ export class TemperatureDAO {
    */
   static async getGroupedByTime(timestamp, interval, limit) {
     const result = await TemperatureModel.aggregate(
-      getGroupedByTimeQuery(timestamp, interval, limit > 100 ? 100 : limit)
+      getGroupedByTimeQuery(timestamp, interval, limit > 1000 ? 1000 : limit)
     );
     if (result.length === 0) {
       return null;
