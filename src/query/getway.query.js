@@ -1,15 +1,94 @@
 /**
- * @param {Number} limit
- * @param {Number} interval
+ * @param {object} props
+ * @param {Number} props.timestamp
+ * @param {Number} props.interval
+ * @param {'temperatures' | 'humidities'} props.type
  * @returns {object[]}
  */
-const UpSamplingSubquery = (limit, interval) => {
+const getPreviousValue = ({ timestamp, interval, type }) => {
+  if (timestamp <= 0) {
+    return [];
+  }
+
+  return [
+    {
+      $lookup: {
+        from: type,
+        as: "temp",
+        pipeline: [
+          {
+            $match: {
+              timestamp: {
+                $lte: new Date(timestamp),
+              },
+            },
+          },
+          {
+            $sort: {
+              timestamp: -1,
+            },
+          },
+          {
+            $limit: 1,
+          },
+          {
+            $group: {
+              _id: {
+                $toDate: {
+                  $subtract: [
+                    {
+                      $toLong: "$timestamp",
+                    },
+                    {
+                      $mod: [
+                        {
+                          $toLong: "$timestamp",
+                        },
+                        interval,
+                      ],
+                    },
+                  ],
+                },
+              },
+              val: {
+                $avg: "$value",
+              },
+            },
+          },
+          {
+            $set: {
+              date: "$_id",
+            },
+          },
+        ],
+      },
+    },
+    {
+      $set: {
+        data: {
+          $concatArrays: ["$temp", "$data"],
+        },
+      },
+    },
+  ];
+};
+
+/**
+ * @param {object} props
+ * @param {Number} props.timestamp
+ * @param {Number} props.interval
+ * @param {Number} props.limit
+ * @param {'temperatures' | 'humidities'} props.type
+ * @returns {object[]}
+ */
+const upSamplingSubquery = ({ timestamp, limit, interval, type }) => {
   if (interval > 60000) {
     return [];
   }
   return [
+    ...getPreviousValue({ timestamp, interval, type }),
     {
-      $project: {
+      $set: {
         data: {
           $reduce: {
             input: { $range: [0, { $size: "$data" }] },
@@ -29,92 +108,104 @@ const UpSamplingSubquery = (limit, interval) => {
         },
       },
     },
+    // Remove last value without next index
     {
-      $project: {
+      $set: {
         data: {
           $setDifference: ["$data", [{ $last: "$data" }]],
         },
       },
     },
     {
-      $project: {
+      $set: {
         data: {
-          $slice: [
-            {
-              $reduce: {
-                input: "$data",
-                initialValue: [],
-                in: {
-                  $concatArrays: [
-                    "$$value",
-                    {
-                      $map: {
-                        input: {
-                          $range: [
-                            1,
-                            {
-                              $abs: {
-                                $dateDiff: {
-                                  startDate: "$$this.next.date",
-                                  endDate: "$$this.current.date",
-                                  unit: "minute",
-                                },
+          $reduce: {
+            input: "$data",
+            initialValue: [],
+            in: {
+              $concatArrays: [
+                "$$value",
+                {
+                  $map: {
+                    input: {
+                      $range: [
+                        1,
+                        {
+                          $abs: {
+                            $dateDiff: {
+                              startDate: "$$this.next.date",
+                              endDate: "$$this.current.date",
+                              unit: "minute",
+                            },
+                          },
+                        },
+                      ],
+                    },
+                    as: "mapVal",
+                    in: {
+                      val: {
+                        $add: [
+                          "$$this.current.val",
+                          {
+                            $multiply: [
+                              {
+                                $divide: [
+                                  {
+                                    $subtract: [
+                                      "$$this.next.val",
+                                      "$$this.current.val",
+                                    ],
+                                  },
+                                  {
+                                    $abs: {
+                                      $dateDiff: {
+                                        startDate: "$$this.next.date",
+                                        endDate: "$$this.current.date",
+                                        unit: "minute",
+                                      },
+                                    },
+                                  },
+                                ],
                               },
+                              "$$mapVal",
+                            ],
+                          },
+                        ],
+                      },
+                      date: {
+                        $toDate: {
+                          $add: [
+                            {
+                              $toLong: "$$this.current.date",
+                            },
+                            {
+                              $multiply: ["$$mapVal", interval],
                             },
                           ],
                         },
-                        as: "mapVal",
-                        in: {
-                          val: {
-                            $add: [
-                              "$$this.current.val",
-                              {
-                                $multiply: [
-                                  {
-                                    $divide: [
-                                      {
-                                        $subtract: [
-                                          "$$this.next.val",
-                                          "$$this.current.val",
-                                        ],
-                                      },
-                                      {
-                                        $abs: {
-                                          $dateDiff: {
-                                            startDate: "$$this.next.date",
-                                            endDate: "$$this.current.date",
-                                            unit: "minute",
-                                          },
-                                        },
-                                      },
-                                    ],
-                                  },
-                                  "$$mapVal",
-                                ],
-                              },
-                            ],
-                          },
-                          date: {
-                            $toDate: {
-                              $add: [
-                                {
-                                  $toLong: "$$this.current.date",
-                                },
-                                {
-                                  $multiply: ["$$mapVal", interval],
-                                },
-                              ],
-                            },
-                          },
-                        },
                       },
                     },
-                    ["$$this.next"],
-                  ],
+                  },
                 },
+                ["$$this.next"],
+              ],
+            },
+          },
+        },
+      },
+    },
+    {
+      $set: {
+        data: {
+          $slice: [
+            {
+              $filter: {
+                as: "x",
+                cond: { $gte: ["$$x.date", new Date(timestamp)] },
+                input: "$data",
               },
             },
-            -1 * limit,
+            timestamp ? limit : -1 * limit,
           ],
         },
       },
@@ -126,16 +217,18 @@ const UpSamplingSubquery = (limit, interval) => {
         },
       },
     },
-  ];
+  ].filter((e) => e);
 };
 
 /**
- * @param {Number} timestamp
- * @param {Number} interval
- * @param {Number} limit
+ * @param {object} props
+ * @param {Number} props.timestamp
+ * @param {Number} props.interval
+ * @param {Number} props.limit
+ * @param {'temperatures' | 'humidities'} props.type
  * @returns {object[]}
  */
-export const getGroupedByTimeQuery = (timestamp, interval, limit) =>
+export const getGroupedByTimeQuery = ({ timestamp, interval, limit, type }) =>
   [
     {
       $match: {
@@ -198,7 +291,7 @@ export const getGroupedByTimeQuery = (timestamp, interval, limit) =>
         },
       },
     },
-    ...UpSamplingSubquery(limit, interval),
+    ...upSamplingSubquery({ timestamp, limit, interval, type }),
     {
       $project: {
         _id: 1,
