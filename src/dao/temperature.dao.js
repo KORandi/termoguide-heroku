@@ -29,11 +29,13 @@ export class TemperatureDAO {
    * @param {Number} timestamp
    * @param {Number} interval
    * @param {Number} limit
+   * @param {String} gatewayId
    * @returns {Promise<AvgTemperatureListDto>}
    */
-  static async getGroupedByTime(timestamp, interval, limit) {
+  static async getGroupedByTime(timestamp, interval, limit, gatewayId) {
     const result = await TemperatureModel.aggregate(
       getGroupedByTimeQuery({
+        gatewayId,
         timestamp,
         interval,
         limit: limit > 1000 ? 1000 : limit,

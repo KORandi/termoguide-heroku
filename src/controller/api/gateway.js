@@ -55,12 +55,13 @@ router.post("/add", logRequest, async (req, res) => {
 });
 
 router.get("/temperature/search", async function (req, res) {
-  const { interval, date = 0, limit = 10 } = req.query;
+  const { interval, date = 0, limit = 10, gatewayId } = req.query;
 
   const errors = validate([
     validateDate(date),
     validateInterval(interval),
     validateLimit(limit),
+    validateId(gatewayId),
   ]);
 
   if (errors.length) {
@@ -76,7 +77,8 @@ router.get("/temperature/search", async function (req, res) {
   const data = await TemperatureDAO.getGroupedByTime(
     Number(date),
     Number(interval),
-    Number(limit)
+    Number(limit),
+    String(gatewayId)
   );
 
   res.json({
@@ -86,12 +88,13 @@ router.get("/temperature/search", async function (req, res) {
 });
 
 router.get("/humidity/search", async function (req, res) {
-  const { interval, date = 0, limit = 10 } = req.query;
+  const { interval, date = 0, limit = 10, gatewayId } = req.query;
 
   const errors = validate([
     validateDate(date),
     validateInterval(interval),
     validateLimit(limit),
+    validateId(gatewayId),
   ]);
 
   if (errors.length) {
@@ -107,7 +110,8 @@ router.get("/humidity/search", async function (req, res) {
   const data = await HumidityDAO.getGroupedByTime(
     Number(date),
     Number(interval),
-    Number(limit)
+    Number(limit),
+    String(gatewayId)
   );
 
   res.json({

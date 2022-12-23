@@ -1,3 +1,5 @@
+import mongoose from "mongoose";
+
 /**
  * @param {object} props
  * @param {Number} props.timestamp
@@ -225,14 +227,22 @@ const upSamplingSubquery = ({ timestamp, limit, interval, type }) => {
  * @param {Number} props.timestamp
  * @param {Number} props.interval
  * @param {Number} props.limit
+ * @param {String} props.gatewayId
  * @param {'temperatures' | 'humidities'} props.type
  * @returns {object[]}
  */
-export const getGroupedByTimeQuery = ({ timestamp, interval, limit, type }) =>
+export const getGroupedByTimeQuery = ({
+  timestamp,
+  interval,
+  limit,
+  type,
+  gatewayId,
+}) =>
   [
     {
       $match: {
         timestamp: { $gte: new Date(timestamp) },
+        gateway: new mongoose.Types.ObjectId(gatewayId),
       },
     },
     {
