@@ -37,6 +37,12 @@ router.post("/add", logRequest, async (req, res) => {
     validateGatewayPayload(payload),
   ]);
 
+  const forwardedFor = req.headers["x-forwarded-for"];
+
+  const ip = Array.isArray(forwardedFor)
+    ? forwardedFor[0]
+    : forwardedFor || req.socket.remoteAddress;
+
   if (errors.length) {
     res.status(400);
     res.json({
@@ -47,7 +53,7 @@ router.post("/add", logRequest, async (req, res) => {
     return;
   }
 
-  await addGatewayPayload(mac, payload);
+  await addGatewayPayload(ip, mac, payload);
 
   res.json({
     status: 200,

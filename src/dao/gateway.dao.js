@@ -9,9 +9,10 @@ export class GatewayDAO {
    *  name?: string,
    *  secret?: string,
    *  owners?: string[]
+   *  ip_address?: string
    * }} param0
    */
-  constructor({ id, _id, name, secret, owners }) {
+  constructor({ id, _id, name, secret, owners, ip_address }) {
     /**
      * @type {string}
      */
@@ -31,6 +32,8 @@ export class GatewayDAO {
      * @type {string[]}
      */
     this.owners = owners || [];
+
+    this.ip_address = ip_address || "";
   }
 
   /**
