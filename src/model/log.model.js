@@ -4,9 +4,6 @@ export const LogSchema = new Schema({
   body: {
     type: Object,
   },
-  headers: {
-    type: Object,
-  },
   ip: {
     type: String,
   },

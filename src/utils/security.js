@@ -14,7 +14,6 @@ export const availableFor = (groups = []) => {
     const user = UserDAO.getSessionUser(req);
     if (groups.includes("$_OWNER")) {
       const isAdmin = await user.hasGroup(["ADMIN"]);
-      console.log(isAdmin);
       if (isAdmin) {
         return next();
       }
