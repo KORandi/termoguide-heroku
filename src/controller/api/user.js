@@ -2,8 +2,6 @@ import { Router } from "express";
 import { authenticate, availableFor } from "../../utils";
 import { CreateAbl } from "../../abl/user/create.abl.js";
 import { ListAbl } from "../../abl/user/list.abl.js";
-import { EnumTeachersAbl } from "../../abl/user/enumTeachers.abl.js";
-import { EnumStudentsAbl } from "../../abl/user/enumStudents.abl.js";
 import { GetAbl } from "../../abl/user/get.abl.js";
 import { UpdatePasswordAbl } from "../../abl/user/updatePassword.abl.js";
 import { UpdateAbl } from "../../abl/user/update.abl.js";
@@ -28,26 +26,6 @@ router.get(
   availableFor(["ADMIN", "STUDENT", "TEACHER"]),
   async (req, res) => {
     await ListAbl(req, res);
-  }
-);
-
-// list all teachers
-router.get(
-  "/enum/teachers",
-  authenticate(),
-  availableFor(["ADMIN", "TEACHER"]),
-  async (req, res) => {
-    await EnumTeachersAbl(req, res);
-  }
-);
-
-// list all students
-router.get(
-  "/enum/students",
-  authenticate(),
-  availableFor(["ADMIN", "TEACHER"]),
-  async (req, res) => {
-    await EnumStudentsAbl(req, res);
   }
 );
 

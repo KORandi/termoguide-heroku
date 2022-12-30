@@ -11,7 +11,6 @@ function parseToPlainObject(obj) {
     thirdPartyIdentity: obj.thirdPartyIdentity,
     name: obj.name,
     surname: obj.surname,
-    password: obj.password,
     groups: obj.groups,
     resetPassword: obj.resetPassword,
   };
@@ -134,30 +133,6 @@ export class UserDAO {
    */
   static async list() {
     const array = await UserModel.find();
-    if (!array) {
-      return null;
-    }
-    const result = array.map((obj) => new this(parseToPlainObject(obj)));
-    return result;
-  }
-
-  /**
-   * list all teachers
-   */
-  static async getTeachers() {
-    const array = await UserModel.find({ "groups.name": "TEACHER" });
-    if (!array) {
-      return null;
-    }
-    const result = array.map((obj) => new this(parseToPlainObject(obj)));
-    return result;
-  }
-
-  /**
-   * list all students
-   */
-  static async getStudents() {
-    const array = await UserModel.find({ "groups.name": "STUDENT" });
     if (!array) {
       return null;
     }

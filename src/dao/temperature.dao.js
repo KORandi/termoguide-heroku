@@ -81,7 +81,7 @@ export class TemperatureDAO {
     })
       .sort({ timestamp: -1 })
       .limit(1);
-    if (!result) {
+    if (!result.length) {
       return null;
     }
     return result;

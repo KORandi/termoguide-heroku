@@ -45,6 +45,15 @@ export function validateName(name) {
   }
 }
 
+export function validateOwners(owners) {
+  if (!Array.isArray(owners)) {
+    return "param 'owners' is not array";
+  }
+  if (!owners.every((owner) => typeof owner === "string")) {
+    return "param 'owners' is not string array";
+  }
+}
+
 export function validateDate(date) {
   if (typeof date === "undefined") {
     return;

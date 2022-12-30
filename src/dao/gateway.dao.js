@@ -7,9 +7,10 @@ export class GatewayDAO {
    *  _id?: string,
    *  name?: string,
    *  secret?: string,
+   *  owners?: string[]
    * }} param0
    */
-  constructor({ id, _id, name, secret }) {
+  constructor({ id, _id, name, secret, owners }) {
     /**
      * @type {string}
      */
@@ -24,10 +25,15 @@ export class GatewayDAO {
      * @type {string}
      */
     this.name = name || "";
+
+    /**
+     * @type {string[]}
+     */
+    this.owners = owners || [];
   }
 
   /**
-   * create user
+   * create gateway
    */
   static async create(gateway) {
     const result = await GatewayModel.create(gateway);
@@ -63,10 +69,18 @@ export class GatewayDAO {
   }
 
   /**
-   * list all users
+   * returns list of gateways
    */
-  static async list() {
-    const array = await GatewayModel.find();
+  static async list(user) {
+    if (!user) {
+      return [];
+    }
+    let array = [];
+    if (user.groups.some((group) => group.name === "ADMIN")) {
+      array = await GatewayModel.find();
+    } else {
+      array = await GatewayModel.find({ owners: user.id });
+    }
     if (!array) {
       return null;
     }
@@ -75,7 +89,7 @@ export class GatewayDAO {
   }
 
   /**
-   * update user
+   * update gateway
    */
   static async update(id, data) {
     const result = await GatewayModel.findByIdAndUpdate(id, data, {
@@ -85,7 +99,7 @@ export class GatewayDAO {
   }
 
   /**
-   * delete user
+   * delete gateway
    */
   static async delete(id) {
     const result = await GatewayModel.findByIdAndDelete(id);
