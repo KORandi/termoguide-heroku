@@ -6,7 +6,9 @@ import {
   validateGatewayPayload,
   validateId,
   validateInterval,
+  validateIP,
   validateLimit,
+  validateMAC,
   validateName,
   validateOwners,
 } from "../../abl/gateway";
@@ -25,7 +27,40 @@ router.post(
   authenticate(),
   availableFor(["ADMIN"]),
   async (req, res) => {
-    res.json(await GatewayDAO.create(req.body));
+    const { owners, name, secret, ip_address } = req.body;
+    const errors = validate([
+      validateName(name),
+      validateOwners(owners),
+      validateIP(ip_address),
+      validateMAC(secret),
+    ]);
+
+    if (errors.length) {
+      res.status(400);
+      res.json({
+        status: 400,
+        errors,
+        data: req.body,
+      });
+      return;
+    }
+
+    try {
+      await GatewayDAO.create({ owners, name, secret, ip_address });
+    } catch (error) {
+      res.status(400);
+      res.json({
+        status: 400,
+        errors: [error.message],
+        data: req.body,
+      });
+      return;
+    }
+
+    res.json({
+      status: 200,
+      data: req.body,
+    });
   }
 );
 
@@ -174,11 +209,12 @@ router.post(
   authenticate(),
   availableFor(["ADMIN"]),
   async (req, res) => {
-    const { owners, name, id } = req.body;
+    const { owners, name, id, ip_address } = req.body;
     const errors = validate([
       validateName(name),
       validateId(id),
       validateOwners(owners),
+      validateIP(ip_address),
     ]);
 
     if (errors.length) {
@@ -192,7 +228,7 @@ router.post(
     }
 
     try {
-      await GatewayDAO.update(id, { name, owners });
+      await GatewayDAO.update(id, { name, owners, ip_address });
     } catch (error) {
       res.status(400);
       res.json({
