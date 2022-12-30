@@ -3,6 +3,7 @@ import passport from "passport";
 import { UserDAO } from "../dao/user.dao";
 import { AuthorizeProps, GroupTypes } from "../types";
 import { Request, Response, NextFunction, Express } from "express";
+import { GatewayDAO } from "../dao/gateway.dao";
 
 /**
  * @param {GroupTypes[]} groups
@@ -11,11 +12,27 @@ import { Request, Response, NextFunction, Express } from "express";
 export const availableFor = (groups = []) => {
   return async (req, res, next) => {
     const user = UserDAO.getSessionUser(req);
-    if (!user || !(await user.hasGroup(groups))) {
-      if (groups.includes("$_CURRENT_USER") && user.id === req.body.id) {
-        next();
+    if (groups.includes("$_OWNER")) {
+      const isAdmin = await user.hasGroup(["ADMIN"]);
+      console.log(isAdmin);
+      if (isAdmin) {
+        return next();
       }
-      return res.json({ status: 400, message: "Access denied" }).status(400);
+      const gatewayId =
+        req.body.id || req.body.gatewayId || req.query.gatewayId;
+      const gateway = await GatewayDAO.findByIdAndOwner(gatewayId, user.id);
+      if (gateway) {
+        return next();
+      }
+      res.status(400).json({ status: 400, message: "Access denied" });
+      return;
+    }
+    if (!(await user.hasGroup(groups))) {
+      if (groups.includes("$_CURRENT_USER") && user.id === req.body.id) {
+        return next();
+      }
+      res.status(400).json({ status: 400, message: "Access denied" });
+      return;
     }
     return next();
   };

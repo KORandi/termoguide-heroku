@@ -13,6 +13,7 @@ function parseToPlainObject(obj) {
     surname: obj.surname,
     groups: obj.groups,
     resetPassword: obj.resetPassword,
+    password: obj.password,
   };
 }
 
@@ -220,10 +221,10 @@ export class UserDAO {
         $match: { _id: userID },
       },
       {
-        $match: { groups: { $elemMatch: { key: { $in: groups } } } },
+        $match: { groups: { $elemMatch: { name: { $in: groups } } } },
       },
     ]);
-    if (!user) {
+    if (!user.length) {
       return false;
     }
     return true;

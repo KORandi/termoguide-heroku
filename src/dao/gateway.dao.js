@@ -1,3 +1,4 @@
+import mongoose from "mongoose";
 import { GatewayModel } from "../model";
 
 export class GatewayDAO {
@@ -47,6 +48,21 @@ export class GatewayDAO {
   static async findByID(id) {
     const gateway = await GatewayModel.findOne({
       _id: id,
+    });
+    if (!gateway) {
+      return null;
+    }
+    return new this(gateway);
+  }
+
+  /**
+   * @param {string} id
+   * @returns {Promise<GatewayDAO | null>}
+   */
+  static async findByIdAndOwner(id, owner) {
+    const gateway = await GatewayModel.findOne({
+      _id: id,
+      owners: new mongoose.Types.ObjectId(owner),
     });
     if (!gateway) {
       return null;

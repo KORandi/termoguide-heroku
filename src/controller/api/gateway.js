@@ -55,121 +55,81 @@ router.post("/add", logRequest, async (req, res) => {
   });
 });
 
-router.get("/temperature/search", async function (req, res) {
-  const { interval, date = 0, limit = 10, gatewayId } = req.query;
+router.get(
+  "/temperature/search",
+  authenticate(),
+  availableFor(["$_OWNER"]),
+  async function (req, res) {
+    const { interval, date = 0, limit = 10, gatewayId } = req.query;
 
-  const errors = validate([
-    validateDate(date),
-    validateInterval(interval),
-    validateLimit(limit),
-    validateId(gatewayId),
-  ]);
+    const errors = validate([
+      validateDate(date),
+      validateInterval(interval),
+      validateLimit(limit),
+      validateId(gatewayId),
+    ]);
 
-  if (errors.length) {
-    res.status(400);
+    if (errors.length) {
+      res.status(400);
+      res.json({
+        status: 400,
+        errors,
+        data: req.params,
+      });
+      return;
+    }
+
+    const data = await TemperatureDAO.getGroupedByTime(
+      Number(date),
+      Number(interval),
+      Number(limit),
+      String(gatewayId)
+    );
+
     res.json({
-      status: 400,
-      errors,
-      data: req.params,
+      status: 200,
+      data,
     });
-    return;
   }
+);
 
-  const data = await TemperatureDAO.getGroupedByTime(
-    Number(date),
-    Number(interval),
-    Number(limit),
-    String(gatewayId)
-  );
+router.get(
+  "/humidity/search",
+  authenticate(),
+  availableFor(["$_OWNER"]),
+  async function (req, res) {
+    const { interval, date = 0, limit = 10, gatewayId } = req.query;
 
-  res.json({
-    status: 200,
-    data,
-  });
-});
+    const errors = validate([
+      validateDate(date),
+      validateInterval(interval),
+      validateLimit(limit),
+      validateId(gatewayId),
+    ]);
 
-router.get("/humidity/search", async function (req, res) {
-  const { interval, date = 0, limit = 10, gatewayId } = req.query;
+    if (errors.length) {
+      res.status(400);
+      res.json({
+        status: 400,
+        errors,
+        data: req.params,
+      });
+      return;
+    }
 
-  const errors = validate([
-    validateDate(date),
-    validateInterval(interval),
-    validateLimit(limit),
-    validateId(gatewayId),
-  ]);
+    const data = await HumidityDAO.getGroupedByTime(
+      Number(date),
+      Number(interval),
+      Number(limit),
+      String(gatewayId)
+    );
 
-  if (errors.length) {
-    res.status(400);
     res.json({
-      status: 400,
-      errors,
-      data: req.params,
+      status: 200,
+      data,
     });
-    return;
   }
-
-  const data = await HumidityDAO.getGroupedByTime(
-    Number(date),
-    Number(interval),
-    Number(limit),
-    String(gatewayId)
-  );
-
-  res.json({
-    status: 200,
-    data,
-  });
-});
-
-router.get("/temperature/:id", async function (req, res) {
-  const { id } = req.params;
-
-  const errors = validate([validateId(id)]);
-
-  if (errors.length) {
-    res.status(400);
-    res.json({
-      status: 400,
-      errors,
-      data: req.body,
-    });
-    return;
-  }
-
-  const temperatures = await TemperatureDAO.list(id);
-
-  res.json({
-    status: 200,
-    data: {
-      temperatures,
-    },
-  });
-});
-
-router.get("/humidity/:id", async function (req, res) {
-  const { id } = req.params;
-
-  const errors = validate([validateId(id)]);
-
-  if (errors.length) {
-    res.status(400);
-    res.json({
-      status: 400,
-      errors,
-      data: req.body,
-    });
-    return;
-  }
-
-  const humidities = await HumidityDAO.list(id);
-
-  res.json({
-    status: 200,
-    data: {
-      humidities,
-    },
-  });
-});
+);
 
 router.get("/status/:id", async function (req, res) {
   const { id } = req.params;
