@@ -1,6 +1,7 @@
 import { LogModel } from "../model/log.model";
 
 export function logRequest(req, res, next) {
-  LogModel.create({ body: req.body });
+  const ip = req.headers["x-forwarded-for"] || req.connection.remoteAddress;
+  LogModel.create({ body: req.body, ip });
   next();
 }
