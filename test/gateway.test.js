@@ -4,6 +4,7 @@ const { expect } = require("chai");
 const app = require("../app");
 const { GatewayDAO } = require("../src/dao/gateway.dao");
 const { TemperatureModel } = require("../src/model/temperature.model");
+const { HumidityModel } = require("../src/model/humidity.model");
 
 describe("gateway api test", () => {
   before(async () => {
@@ -102,12 +103,68 @@ describe("gateway api test", () => {
       });
     });
 
-    describe("GET humidity", async () => {
-      // @todo Create tests
+    describe("GET humidity", () => {
+      it("should return humidity data", async () => {
+        await HumidityModel.insertMany([
+          {
+            timestamp: Date.now(),
+            value: 22.5,
+            gateway: mockedDB.gateway._id,
+          },
+          {
+            timestamp: Date.now() - 6000,
+            value: 32.5,
+            gateway: mockedDB.gateway._id,
+          },
+          {
+            timestamp: Date.now() - 12000,
+            value: 42.5,
+            gateway: mockedDB.gateway._id,
+          },
+        ]);
+        const res = await request(app)
+          .get(`/api/gateway/humidity/search`)
+          .query({
+            interval: 3600000,
+            limit: 30,
+            gatewayId: String(mockedDB.gateway._id),
+          })
+          .auth(token, { type: "bearer" })
+          .expect(200);
+        expect(res.body.data.data).to.have.length(1);
+      });
     });
 
     describe("GET temperature", async () => {
-      // @todo Create tests
+      it("should return temperature data", async () => {
+        await TemperatureModel.insertMany([
+          {
+            timestamp: Date.now(),
+            value: 22.5,
+            gateway: mockedDB.gateway._id,
+          },
+          {
+            timestamp: Date.now() - 6000,
+            value: 32.5,
+            gateway: mockedDB.gateway._id,
+          },
+          {
+            timestamp: Date.now() - 12000,
+            value: 42.5,
+            gateway: mockedDB.gateway._id,
+          },
+        ]);
+        const res = await request(app)
+          .get("/api/gateway/temperature/search")
+          .query({
+            interval: 3600000,
+            limit: 30,
+            gatewayId: String(mockedDB.gateway._id),
+          })
+          .auth(token, { type: "bearer" })
+          .expect(200);
+        expect(res.body.data.data).to.have.length(1);
+      });
     });
 
     describe("POST create gateway", async () => {
