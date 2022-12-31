@@ -3,6 +3,7 @@ const request = require("supertest");
 const { expect } = require("chai");
 const app = require("../app");
 const { GatewayDAO } = require("../src/dao/gateway.dao");
+const { TemperatureModel } = require("../src/model/temperature.model");
 
 describe("gateway api test", () => {
   before(async () => {
@@ -78,6 +79,51 @@ describe("gateway api test", () => {
           .expect(200);
         expect(res.body?.data).to.equal(null);
       });
+    });
+
+    describe("GET gateway status", () => {
+      it("should say if gateway is offline", async () => {
+        const res = await request(app)
+          .get(`/api/gateway/status/${mockedDB.gateway.id}`)
+          .expect(200);
+        expect(res.body.data.value).to.equal(false);
+      });
+
+      it("should say if gateway is online", async () => {
+        await TemperatureModel.create({
+          timestamp: Date.now(),
+          value: 22.5,
+          gateway: mockedDB.gateway._id,
+        });
+        const res = await request(app)
+          .get(`/api/gateway/status/${mockedDB.gateway.id}`)
+          .expect(200);
+        expect(res.body.data.value).to.equal(true);
+      });
+    });
+
+    describe("GET humidity", async () => {
+      // @todo Create tests
+    });
+
+    describe("GET temperature", async () => {
+      // @todo Create tests
+    });
+
+    describe("POST create gateway", async () => {
+      // @todo Create tests
+    });
+
+    describe("POST add data", async () => {
+      // @todo Create tests
+    });
+
+    describe("POST update gateway", async () => {
+      // @todo Create tests
+    });
+
+    describe("DELETE delete gateway", async () => {
+      // @todo Create tests
     });
   });
 
