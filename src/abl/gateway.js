@@ -1,3 +1,5 @@
+import mongoose from "mongoose";
+
 export function validateGatewayMac(mac) {
   if (!mac) {
     return "'mac' field is not set";
@@ -37,11 +39,14 @@ export function validateId(id) {
   if (typeof id !== "string") {
     return "param 'id' is not string";
   }
+  if (!mongoose.Types.ObjectId.isValid(id)) {
+    return "param 'id' is not type object id";
+  }
 }
 
 export function validateName(name) {
   if (typeof name !== "string") {
-    return "param 'id' is not string";
+    return "param 'name' is not string";
   }
 }
 
@@ -97,6 +102,10 @@ export function validateLimit(limit) {
   }
 }
 
+/**
+ * @param {Array<any>} list
+ * @returns {Array<any>}
+ */
 export function validate(list) {
   return list.filter((el) => el);
 }

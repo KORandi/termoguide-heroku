@@ -4,6 +4,7 @@ import { UserDAO } from "../dao/user.dao";
 import { AuthorizeProps, GroupTypes } from "../types";
 import { Request, Response, NextFunction, Express } from "express";
 import { GatewayDAO } from "../dao/gateway.dao";
+import { validate, validateId } from "../abl/gateway";
 
 /**
  * @param {GroupTypes[]} groups
@@ -12,22 +13,32 @@ import { GatewayDAO } from "../dao/gateway.dao";
 export const availableFor = (groups = []) => {
   return async (req, res, next) => {
     const user = UserDAO.getSessionUser(req);
+    const isAdmin = await user.hasGroup(["ADMIN"]);
+    if (isAdmin) {
+      return next();
+    }
     if (groups.includes("$_OWNER")) {
-      const isAdmin = await user.hasGroup(["ADMIN"]);
-      if (isAdmin) {
-        return next();
-      }
       const gatewayId =
-        req.body.id || req.body.gatewayId || req.query.gatewayId;
+        req.body.id ||
+        req.body.gatewayId ||
+        req.query.gatewayId ||
+        req.params.id;
+      const errors = validate([validateId(gatewayId)]);
+      if (errors.length) {
+        return res.status(400).json({ status: 400, errors, data: gatewayId });
+      }
       const gateway = await GatewayDAO.findByIdAndOwner(gatewayId, user.id);
       if (gateway) {
         return next();
       }
-      res.status(400).json({ status: 400, message: "Access denied" });
-      return;
+      return res.status(400).json({ status: 400, message: "Access denied" });
     }
     if (!(await user.hasGroup(groups))) {
-      if (groups.includes("$_CURRENT_USER") && user.id === req.body.id) {
+      if (
+        groups.includes("$_CURRENT_USER") &&
+        String(user.id) === req.params.id
+      ) {
+        console.log("called");
         return next();
       }
       res.status(400).json({ status: 400, message: "Access denied" });

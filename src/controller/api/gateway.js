@@ -260,9 +260,33 @@ router.post(
 router.get(
   "/:id",
   authenticate(),
-  availableFor(["ADMIN"]),
+  availableFor(["ADMIN", "$_OWNER"]),
   async (req, res) => {
-    const data = await GatewayDAO.findByID(req.params.id);
+    const { id } = req.params;
+    const errors = validate([validateId(id)]);
+
+    if (errors.length) {
+      res.status(400);
+      res.json({
+        status: 400,
+        errors,
+        data: req.body,
+      });
+      return;
+    }
+    let data;
+    try {
+      data = await GatewayDAO.findByID(id);
+    } catch (error) {
+      res.status(400);
+      res.json({
+        status: 400,
+        errors: [error.message],
+        data: req.body,
+      });
+      return;
+    }
+
     res.json({
       status: 200,
       data,

@@ -33,7 +33,7 @@ router.get(
 router.get(
   "/:id",
   authenticate(),
-  availableFor(["ADMIN"]),
+  availableFor(["ADMIN", "$_CURRENT_USER"]),
   async (req, res) => {
     await GetAbl(req, res);
   }
