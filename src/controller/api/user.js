@@ -23,7 +23,7 @@ router.post(
 router.get(
   "/list",
   authenticate(),
-  availableFor(["ADMIN", "STUDENT", "TEACHER"]),
+  availableFor(["ADMIN", "USER"]),
   async (req, res) => {
     await ListAbl(req, res);
   }
