@@ -5,16 +5,17 @@ import { getGroupedByTimeQuery } from "../query/getway.query.js";
 function parseToPlainObject(obj) {
   return {
     id: obj._id,
-    value: obj.value,
+    value: obj.value && Number(obj.value),
     gateway: obj.gateway,
   };
 }
 
 export class TemperatureDAO {
   constructor({ id, _id = "", value, gateway }) {
-    this.id = id || _id || "";
+    this.id = id || _id || undefined;
     this.value = value || "";
     this.gateway = gateway || "";
+    this.type = "temperature";
   }
 
   /**
@@ -22,7 +23,7 @@ export class TemperatureDAO {
    */
   static async create(temperature) {
     const result = await TemperatureModel.create(temperature);
-    return new this(result);
+    return new this(parseToPlainObject(result));
   }
 
   /**

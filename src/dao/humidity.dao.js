@@ -1,24 +1,21 @@
-import mongoose from "mongoose";
 import { AvgHumidityListDto } from "../dto/avg-humidity-list.dto.js";
-import { AvgHumidityRecordDto } from "../dto/avg-humidity-record.dto.js";
-import { AvgTemperatureRecordDto } from "../dto/avg-temperature-record.dto.js";
-import { GroupModel } from "../model/group.model.js";
 import { HumidityModel } from "../model/humidity.model.js";
 import { getGroupedByTimeQuery } from "../query/getway.query.js";
 
 function parseToPlainObject(obj) {
   return {
     id: obj._id,
-    value: obj.value,
+    value: obj.value && Number(obj.value),
     gateway: obj.gateway,
   };
 }
 
 export class HumidityDAO {
   constructor({ id, _id = "", value, gateway }) {
-    this.id = id || _id || "";
-    this.value = value || "";
+    this.id = id || _id || undefined;
+    this.value = value || 0;
     this.gateway = gateway || "";
+    this.type = "humidity";
   }
 
   /**
@@ -26,7 +23,7 @@ export class HumidityDAO {
    */
   static async create(humidity) {
     const result = await HumidityModel.create(humidity);
-    return new this(result);
+    return new this(parseToPlainObject(result));
   }
 
   /**

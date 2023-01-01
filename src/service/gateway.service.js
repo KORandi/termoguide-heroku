@@ -18,7 +18,7 @@ export async function addGatewayPayload(ip, mac, payload) {
       ip,
     });
   }
-  await Promise.all(
+  return await Promise.all(
     payload.map(async ({ timestamp, temperature, humidity }) => [
       await HumidityDAO.create({
         timestamp: new Date(timestamp),

@@ -1,6 +1,22 @@
 import mongoose from "mongoose";
 import { GatewayModel } from "../model";
 
+function parseToPlainObject({
+  _id = undefined,
+  name = "",
+  secret = "",
+  owners = [],
+  ip_address = "",
+}) {
+  return {
+    id: _id && String(_id),
+    name,
+    secret,
+    owners: owners?.map((owner) => String(owner)),
+    ip_address,
+  };
+}
+
 export class GatewayDAO {
   /**
    * @param {{
@@ -41,7 +57,7 @@ export class GatewayDAO {
    */
   static async create(gateway) {
     const result = await GatewayModel.create(gateway);
-    return new this(result);
+    return new this(parseToPlainObject(result));
   }
 
   /**
@@ -55,7 +71,7 @@ export class GatewayDAO {
     if (!gateway) {
       return null;
     }
-    return new this(gateway);
+    return new this(parseToPlainObject(gateway));
   }
 
   /**
@@ -70,7 +86,7 @@ export class GatewayDAO {
     if (!gateway) {
       return null;
     }
-    return new this(gateway);
+    return new this(parseToPlainObject(gateway));
   }
 
   /**
@@ -84,7 +100,7 @@ export class GatewayDAO {
     if (!gateway) {
       return null;
     }
-    return new this(gateway);
+    return new this(parseToPlainObject(gateway));
   }
 
   /**
@@ -103,7 +119,7 @@ export class GatewayDAO {
     if (!array) {
       return null;
     }
-    const result = array.map((obj) => new this(obj));
+    const result = array.map((obj) => new this(parseToPlainObject(obj)));
     return result;
   }
 
@@ -114,7 +130,7 @@ export class GatewayDAO {
     const result = await GatewayModel.findByIdAndUpdate(id, data, {
       returnDocument: "after",
     });
-    return new this(result);
+    return new this(parseToPlainObject(result));
   }
 
   /**
@@ -122,6 +138,6 @@ export class GatewayDAO {
    */
   static async delete(id) {
     const result = await GatewayModel.findByIdAndDelete(id);
-    return new this(result);
+    return new this(parseToPlainObject(result));
   }
 }

@@ -88,11 +88,22 @@ router.post("/add", logRequest, async (req, res) => {
     return;
   }
 
-  await addGatewayPayload(ip, mac, payload);
+  let data;
+  try {
+    data = await addGatewayPayload(ip, mac, payload);
+  } catch (error) {
+    res.status(400);
+    res.json({
+      status: 400,
+      errors: [error.message],
+      data: req.body,
+    });
+    return;
+  }
 
   res.json({
     status: 200,
-    data: req.body,
+    data,
   });
 });
 
@@ -227,8 +238,9 @@ router.post(
       return;
     }
 
+    let data;
     try {
-      await GatewayDAO.update(id, { name, owners, ip_address });
+      data = await GatewayDAO.update(id, { name, owners, ip_address });
     } catch (error) {
       res.status(400);
       res.json({
@@ -241,7 +253,7 @@ router.post(
 
     res.json({
       status: 200,
-      data: req.body,
+      data: data,
     });
   }
 );
@@ -252,7 +264,36 @@ router.post(
   authenticate(),
   availableFor(["ADMIN"]),
   async (req, res) => {
-    res.json(await GatewayDAO.delete(req.body.id));
+    const { id } = req.body;
+    const errors = validate([validateId(id)]);
+
+    if (errors.length) {
+      res.status(400);
+      res.json({
+        status: 400,
+        errors,
+        data: req.body,
+      });
+      return;
+    }
+
+    let data;
+    try {
+      data = await GatewayDAO.delete(id);
+    } catch (error) {
+      res.status(400);
+      res.json({
+        status: 400,
+        errors: [error.message],
+        data: req.body,
+      });
+      return;
+    }
+
+    res.json({
+      status: 200,
+      data: data,
+    });
   }
 );
 

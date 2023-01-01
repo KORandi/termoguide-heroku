@@ -4,7 +4,6 @@ const { expect } = require("chai");
 const app = require("../app");
 const { GatewayDAO } = require("../src/dao/gateway.dao");
 const { TemperatureModel } = require("../src/model/temperature.model");
-const { HumidityModel } = require("../src/model/humidity.model");
 
 describe("gateway api test", () => {
   before(async () => {
@@ -105,23 +104,6 @@ describe("gateway api test", () => {
 
     describe("GET humidity", () => {
       it("should return humidity data", async () => {
-        await HumidityModel.insertMany([
-          {
-            timestamp: Date.now(),
-            value: 22.5,
-            gateway: mockedDB.gateway._id,
-          },
-          {
-            timestamp: Date.now() - 6000,
-            value: 32.5,
-            gateway: mockedDB.gateway._id,
-          },
-          {
-            timestamp: Date.now() - 12000,
-            value: 42.5,
-            gateway: mockedDB.gateway._id,
-          },
-        ]);
         const res = await request(app)
           .get(`/api/gateway/humidity/search`)
           .query({
@@ -133,27 +115,21 @@ describe("gateway api test", () => {
           .expect(200);
         expect(res.body.data.data).to.have.length(1);
       });
+
+      it("should be disabled for unauthorized user", async () => {
+        await request(app)
+          .get(`/api/gateway/humidity/search`)
+          .query({
+            interval: 3600000,
+            limit: 30,
+            gatewayId: String(mockedDB.gateway._id),
+          })
+          .expect(401);
+      });
     });
 
-    describe("GET temperature", async () => {
+    describe("GET temperature", () => {
       it("should return temperature data", async () => {
-        await TemperatureModel.insertMany([
-          {
-            timestamp: Date.now(),
-            value: 22.5,
-            gateway: mockedDB.gateway._id,
-          },
-          {
-            timestamp: Date.now() - 6000,
-            value: 32.5,
-            gateway: mockedDB.gateway._id,
-          },
-          {
-            timestamp: Date.now() - 12000,
-            value: 42.5,
-            gateway: mockedDB.gateway._id,
-          },
-        ]);
         const res = await request(app)
           .get("/api/gateway/temperature/search")
           .query({
@@ -167,20 +143,101 @@ describe("gateway api test", () => {
       });
     });
 
-    describe("POST create gateway", async () => {
-      // @todo Create tests
-    });
-
-    describe("POST add data", async () => {
-      // @todo Create tests
+    describe("POST create gateway", () => {
+      it("should create gateway record", async () => {
+        const resp = await request(app)
+          .post("/api/gateway/create")
+          .auth(token, { type: "bearer" })
+          .send({
+            name: "test gateway",
+            secret: "e4:5f:01:e6:6e:ff",
+            ip_address: "192.168.0.245",
+            owners: [mockedDB.user._id],
+          })
+          .expect(200);
+        expect(resp.body.data).to.deep.equal({
+          name: "test gateway",
+          secret: "e4:5f:01:e6:6e:ff",
+          ip_address: "192.168.0.245",
+          owners: [String(mockedDB.user._id)],
+        });
+      });
+      it("should deny access", async () => {
+        await request(app)
+          .post("/api/gateway/create")
+          .send({
+            name: "test gateway",
+            secret: "e4:5f:01:e6:6e:ff",
+            ip_address: "192.168.0.245",
+            owners: [mockedDB.user._id],
+          })
+          .expect(401);
+      });
     });
 
     describe("POST update gateway", async () => {
-      // @todo Create tests
+      it("should update gateway record", async () => {
+        const resp = await request(app)
+          .post("/api/gateway/update")
+          .auth(token, { type: "bearer" })
+          .send({
+            id: mockedDB.gateway._id,
+            name: "test gateway",
+            ip_address: "192.168.0.245",
+            owners: [mockedDB.user._id],
+          })
+          .expect(200);
+        expect(resp.body.data).to.deep.equal({
+          id: String(mockedDB.gateway._id),
+          name: "test gateway",
+          ip_address: "192.168.0.245",
+          owners: [String(mockedDB.user._id)],
+          secret: "e4:5f:01:e6:6e:aa",
+        });
+      });
+      it("should deny access", async () => {
+        await request(app)
+          .post("/api/gateway/update")
+          .send({
+            id: mockedDB.gateway._id,
+            name: "test gateway",
+            secret: "e4:5f:01:e6:6e:ff",
+            ip_address: "192.168.0.245",
+            owners: [mockedDB.user._id],
+          })
+          .expect(401);
+      });
     });
 
     describe("DELETE delete gateway", async () => {
-      // @todo Create tests
+      it("should delete gateway record", async () => {
+        const resp = await request(app)
+          .post("/api/gateway/delete")
+          .auth(token, { type: "bearer" })
+          .send({
+            id: mockedDB.gateway._id,
+          })
+          .expect(200);
+        expect(resp.body.data).to.deep.equal({
+          id: String(mockedDB.gateway._id),
+          ip_address: mockedDB.gateway.ip_address,
+          name: mockedDB.gateway.name,
+          owners: mockedDB.gateway.owners,
+          secret: mockedDB.gateway.secret,
+        });
+      });
+      it("should deny access", async () => {
+        await request(app)
+          .post("/api/gateway/delete")
+          .send({
+            id: mockedDB.gateway._id,
+            name: "test gateway",
+            secret: "e4:5f:01:e6:6e:ff",
+            ip_address: "192.168.0.245",
+            owners: [mockedDB.user._id],
+          })
+          .expect(401);
+      });
     });
   });
 
@@ -238,6 +295,75 @@ describe("gateway api test", () => {
           .get(`/api/gateway/63af591ab9c4ae3ae9b35eac`)
           .auth(token, { type: "bearer" })
           .expect(400);
+      });
+    });
+    describe("GET humidity", () => {
+      it("should block user", async () => {
+        const res = await request(app)
+          .get(`/api/gateway/humidity/search`)
+          .query({
+            interval: 3600000,
+            limit: 30,
+            gatewayId: String(mockedDB.gateway._id),
+          })
+          .auth(token, { type: "bearer" })
+          .expect(400);
+      });
+
+      it("should return humidity data", async () => {
+        const res = await request(app)
+          .get(`/api/gateway/humidity/search`)
+          .query({
+            interval: 3600000,
+            limit: 30,
+            gatewayId: String(mockedDB.userGateway._id),
+          })
+          .auth(token, { type: "bearer" })
+          .expect(200);
+        expect(res.body.data.data).to.have.length(1);
+      });
+    });
+
+    describe("GET temperature", async () => {
+      it("should block user", async () => {
+        const res = await request(app)
+          .get("/api/gateway/temperature/search")
+          .query({
+            interval: 3600000,
+            limit: 30,
+            gatewayId: String(mockedDB.gateway._id),
+          })
+          .auth(token, { type: "bearer" })
+          .expect(400);
+      });
+    });
+
+    describe("POST add data", async () => {
+      it("should create humidity and temperature records", async () => {
+        const res = await request(app)
+          .post("/api/gateway/add")
+          .send({
+            mac: "e4:5f:01:e6:55:55",
+            payload: [
+              {
+                timestamp: Date.now(),
+                temperature: 25.5,
+                humidity: 25.5,
+              },
+              {
+                timestamp: Date.now() - 1,
+                temperature: 25.5,
+                humidity: 25.5,
+              },
+              {
+                timestamp: Date.now() - 2,
+                temperature: 25.5,
+                humidity: 25.5,
+              },
+            ],
+          })
+          .expect(200);
+        expect(res.body.data).to.have.length(3);
       });
     });
   });

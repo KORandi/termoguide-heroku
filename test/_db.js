@@ -1,6 +1,8 @@
 const mongoose = require("mongoose");
 const { MongoMemoryServer } = require("mongodb-memory-server");
 const { UserModel, GroupModel, GatewayModel } = require("../src/model");
+const { TemperatureModel } = require("../src/model/temperature.model");
+const { HumidityModel } = require("../src/model/humidity.model");
 
 let mongo = null;
 const connectDB = async () => {
@@ -71,6 +73,60 @@ const mockData = async () => {
     owners: [],
     ip_address: "192.168.0.245",
   });
+  await TemperatureModel.insertMany([
+    {
+      timestamp: Date.now(),
+      value: 22.5,
+      gateway: userGateway._id,
+    },
+    {
+      timestamp: Date.now() - 6000,
+      value: 32.5,
+      gateway: userGateway._id,
+    },
+    {
+      timestamp: Date.now() - 12000,
+      value: 42.5,
+      gateway: userGateway._id,
+    },
+    {
+      timestamp: Date.now() - 500000,
+      value: 22.5,
+      gateway: gateway._id,
+    },
+  ]);
+  await HumidityModel.insertMany([
+    {
+      timestamp: Date.now(),
+      value: 22.5,
+      gateway: userGateway._id,
+    },
+    {
+      timestamp: Date.now() - 6000,
+      value: 32.5,
+      gateway: userGateway._id,
+    },
+    {
+      timestamp: Date.now() - 12000,
+      value: 42.5,
+      gateway: userGateway._id,
+    },
+    {
+      timestamp: Date.now(),
+      value: 22.5,
+      gateway: gateway._id,
+    },
+    {
+      timestamp: Date.now() - 6000,
+      value: 32.5,
+      gateway: gateway._id,
+    },
+    {
+      timestamp: Date.now() - 12000,
+      value: 42.5,
+      gateway: gateway._id,
+    },
+  ]);
   return { adminGroup, adminUser, user, userGateway, gateway };
 };
 
