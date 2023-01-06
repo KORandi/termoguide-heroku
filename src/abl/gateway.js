@@ -94,6 +94,9 @@ export function validateInterval(interval) {
   if (!Number.isInteger(Number(interval))) {
     return "param 'interval' is not number";
   }
+  if (interval < 60000) {
+    return "param 'interval' is less than 1 minute";
+  }
 }
 
 export function validateLimit(limit) {

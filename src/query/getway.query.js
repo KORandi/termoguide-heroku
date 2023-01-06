@@ -84,11 +84,9 @@ const getPreviousValue = ({ timestamp, interval, type }) => {
  * @returns {object[]}
  */
 const upSamplingSubquery = ({ timestamp, limit, interval, type }) => {
-  if (interval > 60000) {
-    return [];
-  }
   return [
     ...getPreviousValue({ timestamp, interval, type }),
+    // Create linkedlist
     {
       $set: {
         data: {
@@ -101,7 +99,12 @@ const upSamplingSubquery = ({ timestamp, limit, interval, type }) => {
                 [
                   {
                     current: { $arrayElemAt: ["$data", "$$this"] },
-                    next: { $arrayElemAt: ["$data", { $add: ["$$this", 1] }] },
+                    next: {
+                      $ifNull: [
+                        { $arrayElemAt: ["$data", { $add: ["$$this", 1] }] },
+                        { $arrayElemAt: ["$data", { $add: ["$$this"] }] },
+                      ],
+                    },
                   },
                 ],
               ],
@@ -110,14 +113,7 @@ const upSamplingSubquery = ({ timestamp, limit, interval, type }) => {
         },
       },
     },
-    // Remove last value without next index
-    {
-      $set: {
-        data: {
-          $setDifference: ["$data", [{ $last: "$data" }]],
-        },
-      },
-    },
+    // Do calculations
     {
       $set: {
         data: {
@@ -133,12 +129,19 @@ const upSamplingSubquery = ({ timestamp, limit, interval, type }) => {
                       $range: [
                         1,
                         {
-                          $abs: {
-                            $dateDiff: {
-                              startDate: "$$this.next.date",
-                              endDate: "$$this.current.date",
-                              unit: "minute",
-                            },
+                          $toInt: {
+                            $divide: [
+                              {
+                                $abs: {
+                                  $dateDiff: {
+                                    startDate: "$$this.next.date",
+                                    endDate: "$$this.current.date",
+                                    unit: "minute",
+                                  },
+                                },
+                              },
+                              Math.round(interval / 60000),
+                            ],
                           },
                         },
                       ],
@@ -159,12 +162,19 @@ const upSamplingSubquery = ({ timestamp, limit, interval, type }) => {
                                     ],
                                   },
                                   {
-                                    $abs: {
-                                      $dateDiff: {
-                                        startDate: "$$this.next.date",
-                                        endDate: "$$this.current.date",
-                                        unit: "minute",
-                                      },
+                                    $toInt: {
+                                      $divide: [
+                                        {
+                                          $abs: {
+                                            $dateDiff: {
+                                              startDate: "$$this.next.date",
+                                              endDate: "$$this.current.date",
+                                              unit: "minute",
+                                            },
+                                          },
+                                        },
+                                        Math.round(interval / 60000),
+                                      ],
                                     },
                                   },
                                 ],
@@ -196,6 +206,7 @@ const upSamplingSubquery = ({ timestamp, limit, interval, type }) => {
         },
       },
     },
+    // Cut data
     {
       $set: {
         data: {
@@ -239,12 +250,14 @@ export const getGroupedByTimeQuery = ({
   gatewayId,
 }) =>
   [
+    // Find date greater than timestamp
     {
       $match: {
         timestamp: { $gte: new Date(timestamp) },
         gateway: new mongoose.Types.ObjectId(gatewayId),
       },
     },
+    // Group them by interval
     {
       $group: {
         _id: {
@@ -271,25 +284,30 @@ export const getGroupedByTimeQuery = ({
         },
       },
     },
+    // If timestamp is set take last record, if not take firsts nearby timestamp
     {
       $sort: {
         _id: timestamp === 0 ? -1 : 1,
       },
     },
+    // Cut result
     {
       $limit: limit,
     },
+    // Set proper sort
     {
       $sort: {
         _id: 1,
       },
     },
+    // Copy val and set date instead of _id
     {
       $project: {
         date: "$_id",
         val: 1,
       },
     },
+    // Push results into array and set length
     {
       $group: {
         _id: 1,
