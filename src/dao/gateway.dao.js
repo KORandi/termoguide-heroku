@@ -119,7 +119,7 @@ export class GatewayDAO {
     if (user.groups.some((group) => group.name === "ADMIN")) {
       array = await GatewayModel.find();
     } else {
-      array = await GatewayModel.find({ owners: user.id });
+      array = await GatewayModel.find({ owners: user.id, status: "active" });
     }
     if (!array) {
       return null;
