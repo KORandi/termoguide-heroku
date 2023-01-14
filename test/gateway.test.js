@@ -85,6 +85,7 @@ describe("gateway api test", () => {
       it("should say if gateway is offline", async () => {
         const res = await request(app)
           .get(`/api/gateway/status/${mockedDB.gateway.id}`)
+          .auth(token, { type: "bearer" })
           .expect(200);
         expect(res.body.data.value).to.equal(false);
       });
@@ -97,6 +98,7 @@ describe("gateway api test", () => {
         });
         const res = await request(app)
           .get(`/api/gateway/status/${mockedDB.gateway.id}`)
+          .auth(token, { type: "bearer" })
           .expect(200);
         expect(res.body.data.value).to.equal(true);
       });
@@ -185,6 +187,7 @@ describe("gateway api test", () => {
             name: "test gateway",
             ip_address: "192.168.0.245",
             owners: [mockedDB.user._id],
+            status: "active",
           })
           .expect(200);
         expect(resp.body.data).to.deep.equal({
@@ -193,6 +196,7 @@ describe("gateway api test", () => {
           ip_address: "192.168.0.245",
           owners: [String(mockedDB.user._id)],
           secret: "e4:5f:01:e6:6e:aa",
+          status: "active",
         });
       });
       it("should deny access", async () => {
@@ -224,6 +228,7 @@ describe("gateway api test", () => {
           name: mockedDB.gateway.name,
           owners: mockedDB.gateway.owners,
           secret: mockedDB.gateway.secret,
+          status: mockedDB.gateway.status,
         });
       });
       it("should deny access", async () => {
@@ -339,11 +344,37 @@ describe("gateway api test", () => {
     });
 
     describe("POST add data", async () => {
-      it("should create humidity and temperature records", async () => {
+      it("should create gateway, ignore humidity and temperature records", async () => {
         const res = await request(app)
           .post("/api/gateway/add")
           .send({
             mac: "e4:5f:01:e6:55:55",
+            payload: [
+              {
+                timestamp: Date.now(),
+                temperature: 25.5,
+                humidity: 25.5,
+              },
+              {
+                timestamp: Date.now() - 1,
+                temperature: 25.5,
+                humidity: 25.5,
+              },
+              {
+                timestamp: Date.now() - 2,
+                temperature: 25.5,
+                humidity: 25.5,
+              },
+            ],
+          })
+          .expect(400);
+      });
+
+      it("should create humidity and temperature records", async () => {
+        const res = await request(app)
+          .post("/api/gateway/add")
+          .send({
+            mac: "e4:5f:01:e6:6e:aa",
             payload: [
               {
                 timestamp: Date.now(),

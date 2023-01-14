@@ -16,7 +16,16 @@ export async function addGatewayPayload(ip, mac, payload) {
       name: mac,
       secret: mac,
       ip,
+      status: "pending",
     });
+  }
+  if (gateway.status === "pending") {
+    throw new Error(
+      "Gateway is in pending state, humidity and tempreture cannot be created"
+    );
+  }
+  if (gateway.ip_address !== ip) {
+    throw new Error("Gateway ip address is different from request");
   }
   return await Promise.all(
     payload.map(async ({ timestamp, temperature, humidity }) => [

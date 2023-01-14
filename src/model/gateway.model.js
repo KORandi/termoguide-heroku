@@ -14,6 +14,7 @@ export const GatewaySchema = new Schema({
   },
   ip_address: {
     type: String,
+    required: true,
   },
   owners: [
     {
@@ -21,6 +22,11 @@ export const GatewaySchema = new Schema({
       ref: "user",
     },
   ],
+  status: {
+    type: String,
+    enum: ["pending", "active", "disabled"],
+    default: "active",
+  },
 });
 
 export const GatewayModel = mongoose.model("gateway", GatewaySchema);

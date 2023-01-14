@@ -2,7 +2,6 @@ import { Router } from "express";
 import {
   validate,
   validateDate,
-  validateGatewayMac,
   validateGatewayPayload,
   validateId,
   validateInterval,
@@ -11,6 +10,7 @@ import {
   validateMAC,
   validateName,
   validateOwners,
+  validateStatus,
 } from "../../abl/gateway";
 import { GatewayDAO } from "../../dao/gateway.dao";
 import { HumidityDAO } from "../../dao/humidity.dao";
@@ -67,10 +67,7 @@ router.post(
 router.post("/add", logRequest, async (req, res) => {
   const { mac, payload } = req.body;
 
-  const errors = validate([
-    validateGatewayMac(mac),
-    validateGatewayPayload(payload),
-  ]);
+  const errors = validate([validateMAC(mac), validateGatewayPayload(payload)]);
 
   const forwardedFor = req.headers["x-forwarded-for"];
 
@@ -183,7 +180,7 @@ router.get(
   }
 );
 
-router.get("/status/:id", async function (req, res) {
+router.get("/status/:id", authenticate(), async function (req, res) {
   const { id } = req.params;
 
   const errors = validate([validateId(id)]);
@@ -220,12 +217,13 @@ router.post(
   authenticate(),
   availableFor(["ADMIN"]),
   async (req, res) => {
-    const { owners, name, id, ip_address } = req.body;
+    const { owners, name, id, ip_address, status } = req.body;
     const errors = validate([
       validateName(name),
       validateId(id),
       validateOwners(owners),
       validateIP(ip_address),
+      validateStatus(status),
     ]);
 
     if (errors.length) {
@@ -240,7 +238,7 @@ router.post(
 
     let data;
     try {
-      data = await GatewayDAO.update(id, { name, owners, ip_address });
+      data = await GatewayDAO.update(id, { name, owners, ip_address, status });
     } catch (error) {
       res.status(400);
       res.json({

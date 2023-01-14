@@ -65,13 +65,13 @@ const mockData = async () => {
     name: "Michael's weather station",
     secret: "e4:5f:01:e6:6e:bb",
     owners: [user._id],
-    ip_address: "192.168.0.244",
+    ip_address: "::ffff:127.0.0.1",
   });
   const gateway = await GatewayModel.create({
     name: "Jan's weather station",
     secret: "e4:5f:01:e6:6e:aa",
     owners: [],
-    ip_address: "192.168.0.245",
+    ip_address: "::ffff:127.0.0.1",
   });
   await TemperatureModel.insertMany([
     {

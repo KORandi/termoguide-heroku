@@ -7,6 +7,7 @@ function parseToPlainObject({
   secret = "",
   owners = [],
   ip_address = "",
+  status = "active",
 }) {
   return {
     id: _id && String(_id),
@@ -14,6 +15,7 @@ function parseToPlainObject({
     secret,
     owners: owners?.map((owner) => String(owner)),
     ip_address,
+    status,
   };
 }
 
@@ -26,9 +28,10 @@ export class GatewayDAO {
    *  secret?: string,
    *  owners?: string[]
    *  ip_address?: string
+   *  status?: "pending" | "active" | "disabled" | string
    * }} param0
    */
-  constructor({ id, _id, name, secret, owners, ip_address }) {
+  constructor({ id, _id, name, secret, owners, ip_address, status }) {
     /**
      * @type {string}
      */
@@ -50,6 +53,8 @@ export class GatewayDAO {
     this.owners = owners || [];
 
     this.ip_address = ip_address || "";
+
+    this.status = status || "active";
   }
 
   /**

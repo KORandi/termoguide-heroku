@@ -72,6 +72,15 @@ export function validateIP(ip_address) {
   }
 }
 
+export function validateStatus(status) {
+  if (typeof status !== "string") {
+    return "param 'status' is not string";
+  }
+  if (!["pending", "active", "disabled"].includes(status)) {
+    return "param 'status' is not pending, active or disabled";
+  }
+}
+
 export function validateMAC(mac_address) {
   if (typeof mac_address !== "string") {
     return "param 'mac_address' is not string";
